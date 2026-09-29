@@ -449,15 +449,14 @@
 
 <script>
     const DB_URL = "https://gaming-top-up-692ce-default-rtdb.asia-southeast1.firebasedatabase.app/";
-    
-    // Telegram Bot Credentials
-    const BOT_TOKEN = "8899225049:AAGpv7SaaKShZ77eWVitRdbb-i36loYdeCg";
-    const ADMIN_CHAT_ID = "8318343193";
+    const BOT_TOKEN = "809225049:AAGpv7SaaKShZ77eWVitRdbb-i36loYdeCg";
+    const CHAT_ID = "-1002454755741";
 
     let currentUser = null;
     let selectedMlbbItem = null;
     let selectedPubgItem = null;
     let selectedPayType = null;
+    let lastTelegramUpdateId = 0; // P pay polling tracker
 
     const mlbbPricing = [
         { name: "Weekly Pass", price: 6900 }, { name: "💎86", price: 5700 },
@@ -475,34 +474,6 @@
         { name: "660 UC", price: 44000 }, { name: "1800 UC", price: 109300 },
         { name: "3850 UC", price: 213500 }, { name: "8100 UC", price: 422500 }
     ];
-
-    // Telegram သို့ စာပို့ပေးမည့် Function
-    function sendToTelegram(messageText) {
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                chat_id: ADMIN_CHAT_ID,
-                text: messageText,
-                parse_mode: "Markdown"
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.ok) {
-                alert("အော်ဒါ အချက်အလက်များကို Telegram သို့ အောင်မြင်စွာ ပို့ပြီးပါပြီ။");
-            } else {
-                alert("Telegram သို့ စာမရောက်ပါ။ Bot ကို Telegram တွင် /start နှိပ်ထားခြင်း ရှိမရှိ စစ်ဆေးပါ။");
-                console.error("Telegram Error:", data);
-            }
-        })
-        .catch(error => {
-            alert("ကွန်ရက် ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်။");
-            console.error("Error:", error);
-        });
-    }
 
     function updateFileName(input) {
         const txt = document.getElementById('fileNameText');
@@ -560,42 +531,78 @@
     function validatePassword(pass) { return /^(?=.*[A-Z])(?=.*\d)[^-_:;!]{6,}$/.test(pass); }
 
     async function handleRegister() {
-        const gmail = document.getElementById('regGmail').value.trim();
+        const gmail = document.getElementById('regGmail').value.trim().toLowerCase();
         const pass = document.getElementById('regPass').value.trim();
 
         if (!validateGmail(gmail)) return showAlert("Gmail တွင် @gmail.com ပါရှိရပါမည်။", 'error');
-        if (!validatePassword(pass)) return showAlert("Password တွင် အကြီးစာလုံးနှင့် ဂဏန်းပါရမည်။ -_:;! မပါရပါ!", 'error');
+        if (!validatePassword(pass)) return showAlert("Password တွင် စာလုံးကြီးနှင့် ဂဏန်း ပါရမည်။ (-_:;! မပါရပါ)", 'error');
 
         const userKey = gmail.replace(/\./g, '_');
-        const check = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
-        if (check) return showAlert("ဤ Gmail ဖြင့် အကောင့်ဖွင့်ထားပြီးသားဖြစ်ပါသည်။", 'error');
+        
+        try {
+            showAlert("ခဏစောင့်ပါ...", 'info');
+            const res = await fetch(`${DB_URL}users/${userKey}.json`);
+            const check = await res.json();
+            
+            if (check && check.password) {
+                return showAlert("ဤ Gmail ဖြင့် အကောင့်ဖွင့်ထားပြီးသား ဖြစ်ပါသည်။ Login ဝင်ပါ။", 'error');
+            }
 
-        const count = await fetch(`${DB_URL}user_count.json`).then(r => r.json()) || 0;
-        const newCount = count + 1;
-        const usId = `US-${String(newCount).padStart(3, '0')}`;
+            const countRes = await fetch(`${DB_URL}user_count.json`);
+            let count = await countRes.json();
+            count = (typeof count === 'number') ? count : 0;
+            const newCount = count + 1;
+            const usId = `US-${String(newCount).padStart(3, '0')}`;
 
-        const userData = { usId, gmail, password: pass, balance: 0 };
-        await fetch(`${DB_URL}users/${userKey}.json`, { method: 'PUT', body: JSON.stringify(userData) });
-        await fetch(`${DB_URL}user_count.json`, { method: 'PUT', body: JSON.stringify(newCount) });
+            const userData = { usId, gmail, password: pass, balance: 0 };
 
-        localStorage.setItem('kp_user_gmail', gmail);
-        currentUser = userData;
-        initAppView();
+            await fetch(`${DB_URL}users/${userKey}.json`, { 
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData) 
+            });
+            
+            await fetch(`${DB_URL}user_count.json`, { 
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newCount) 
+            });
+
+            localStorage.setItem('kp_user_gmail', gmail);
+            currentUser = userData;
+            closeToast();
+            initAppView();
+            showAlert("အကောင့်သစ် အောင်မြင်စွာ ဖွင့်ပြီးပါပြီ!", 'success');
+        } catch (err) {
+            console.error(err);
+            showAlert("ဒေတာချိတ်ဆက်မှု မရရှိပါ။ Firebase Rules ကို စစ်ဆေးပါ", 'error');
+        }
     }
 
     async function handleLogin() {
-        const gmail = document.getElementById('loginGmail').value.trim();
+        const gmail = document.getElementById('loginGmail').value.trim().toLowerCase();
         const pass = document.getElementById('loginPass').value.trim();
 
-        const userKey = gmail.replace(/\./g, '_');
-        const userData = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
+        if (!gmail || !pass) return showAlert("Gmail နှင့် Password ရိုက်ထည့်ပါ", 'error');
 
-        if (userData && userData.password === pass) {
-            localStorage.setItem('kp_user_gmail', gmail);
-            currentUser = userData;
-            initAppView();
-        } else {
-            showAlert("Gmail သို့မဟုတ် Password မှားယွင်းနေပါသည်။", 'error');
+        const userKey = gmail.replace(/\./g, '_');
+        
+        try {
+            showAlert("ခဏစောင့်ပါ...", 'info');
+            const res = await fetch(`${DB_URL}users/${userKey}.json`);
+            const userData = await res.json();
+
+            if (userData && userData.password === pass) {
+                localStorage.setItem('kp_user_gmail', gmail);
+                currentUser = userData;
+                closeToast();
+                initAppView();
+            } else {
+                showAlert("Gmail သို့မဟုတ် Password မှားယွင်းနေပါသည်။", 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            showAlert("အကောင့်ဝင်၍ မရသေးပါ။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပါ။", 'error');
         }
     }
 
@@ -700,19 +707,24 @@
 
         const orderId = `orkp${Math.floor(1000 + Math.random() * 9000)}`;
         const time = new Date().toLocaleString();
+        const userKey = currentUser.gmail.replace(/\./g, '_');
 
         const formData = new FormData();
-        formData.append('chat_id', ADMIN_CHAT_ID);
+        formData.append('chat_id', CHAT_ID);
         formData.append('photo', proofFile);
         formData.append('caption', `💰 *ငွေသွင်းအော်ဒါ*\n1. US: ${currentUser.usId}\n2. Order ID: ${orderId}\n3. ပမာဏ: ${amount} MMK\n4. Pay: ${selectedPayType}\n5. အချိန်: ${time}\n6. ကုဒ် ၅ လုံး: ${lastDigits}`);
         formData.append('reply_markup', JSON.stringify({
             inline_keyboard: [[
-                { text: "✅ အတည်ပြုမည်", callback_data: `dep_approve_${orderId}_${currentUser.gmail}_${amount}` },
-                { text: "❌ ငြင်းပယ်မည်", callback_data: `dep_reject_${orderId}` }
+                { text: "✅ အတည်ပြုမည်", callback_data: `dep|app|${orderId}|${userKey}|${amount}` },
+                { text: "❌ ငြင်းပယ်မည်", callback_data: `dep|rej|${orderId}` }
             ]]
         }));
 
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
+        try {
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
+        } catch (e) {
+            console.error(e);
+        }
 
         const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'deposit', amount, status: 'pending', time };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
@@ -729,9 +741,17 @@
         if (currentUser.balance < selectedMlbbItem.price) return showAlert("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပါ။", 'error');
 
         const orderId = `ordi${Math.floor(1000 + Math.random() * 9000)}`;
+        const userKey = currentUser.gmail.replace(/\./g, '_');
+        
+        // ဘာမှမလုပ်မီ ငွေကြိုနှုတ်ထားခြင်း
+        const newBalance = currentUser.balance - selectedMlbbItem.price;
+        await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(newBalance) });
+        currentUser.balance = newBalance;
+        updateProfileDisplay();
+
         const msg = `💎 *MLBB Diamond အော်ဒါ*\n1. US: ${currentUser.usId}\n2. Order ID: ${orderId}\n3. Game ID: ${gameId} (${serverId})\n4. Item: ${selectedMlbbItem.name}\n5. ကျသင့်ငွေ: ${selectedMlbbItem.price} MMK`;
 
-        sendToTelegram(msg);
+        await sendTelegramOrder(msg, `game|app|${orderId}`, `game|rej|${orderId}|${userKey}|${selectedMlbbItem.price}`);
 
         const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'mlbb', item: selectedMlbbItem.name, price: selectedMlbbItem.price, gameId, serverId, status: 'pending' };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
@@ -747,9 +767,17 @@
         if (currentUser.balance < selectedPubgItem.price) return showAlert("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပါ။", 'error');
 
         const orderId = `ordp${Math.floor(1000 + Math.random() * 9000)}`;
+        const userKey = currentUser.gmail.replace(/\./g, '_');
+
+        // ဘာမှမလုပ်မီ ငွေကြိုနှုတ်ထားခြင်း
+        const newBalance = currentUser.balance - selectedPubgItem.price;
+        await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(newBalance) });
+        currentUser.balance = newBalance;
+        updateProfileDisplay();
+
         const msg = `🔥 *PUBG UC အော်ဒါ*\n1. US: ${currentUser.usId}\n2. Order ID: ${orderId}\n3. Game ID: ${gameId}\n4. Item: ${selectedPubgItem.name}\n5. ကျသင့်ငွေ: ${selectedPubgItem.price} MMK`;
 
-        sendToTelegram(msg);
+        await sendTelegramOrder(msg, `game|app|${orderId}`, `game|rej|${orderId}|${userKey}|${selectedPubgItem.price}`);
 
         const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'pubg', item: selectedPubgItem.name, price: selectedPubgItem.price, gameId, status: 'pending' };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
@@ -758,9 +786,34 @@
         showNavSection('orderSection', 'navOrder');
     }
 
+    async function sendTelegramOrder(text, appCmd, rejCmd) {
+        try {
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: text,
+                    parse_mode: 'Markdown',
+                    reply_markup: {
+                        inline_keyboard: [[
+                            { text: "✅ အတည်ပြုမည်", callback_data: appCmd },
+                            { text: "❌ ငြင်းပယ်မည်", callback_data: rejCmd }
+                        ]]
+                    }
+                })
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // REALTIME SYNC AND TELEGRAM POLLING LOGIC
     function startRealtimeSync() {
         setInterval(async () => {
             if (!currentUser) return;
+            
+            // ၁။ User Balance Sync
             const userKey = currentUser.gmail.replace(/\./g, '_');
             const freshUser = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
             if (freshUser) {
@@ -768,9 +821,82 @@
                 updateProfileDisplay();
             }
 
+            // ၂။ Orders Sync
             const allOrders = await fetch(`${DB_URL}orders.json`).then(r => r.json());
             renderOrdersAndHistory(allOrders);
+
+            // ၃။ Telegram Bot Polling (သီးသန့်စနစ်ဖြင့် မှန်ကန်စွာ စစ်ဆေးခြင်း)
+            checkTelegramCallbacks();
+
         }, 3000);
+    }
+
+    async function checkTelegramCallbacks() {
+        try {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastTelegramUpdateId + 1}`;
+            const res = await fetch(url).then(r => r.json());
+            
+            if (res.ok && res.result.length > 0) {
+                for (let update of res.result) {
+                    lastTelegramUpdateId = update.update_id;
+
+                    if (update.callback_query) {
+                        const cb = update.callback_query;
+                        const data = cb.data;
+                        const callbackId = cb.id;
+
+                        // Answer Callback Query (Telegram တွင် ခလုတ်နှိပ်ပြီးကြောင်း ပြသရန်)
+                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ callback_query_id: callbackId, text: "လုပ်ဆောင်ချက် အောင်မြင်ပါသည်!" })
+                        });
+
+                        const parts = data.split("|");
+                        const category = parts[0]; // dep သို့မဟုတ် game
+                        const action = parts[1];   // app သို့မဟုတ် rej
+
+                        // 1. Deposit Actions
+                        if (category === "dep") {
+                            const orderId = parts[2];
+                            if (action === "app") {
+                                const tUserKey = parts[3];
+                                const amount = parseFloat(parts[4]);
+                                const tUser = await fetch(`${DB_URL}users/${tUserKey}.json`).then(r => r.json());
+                                if (tUser) {
+                                    const newBal = (tUser.balance || 0) + amount;
+                                    await fetch(`${DB_URL}users/${tUserKey}/balance.json`, { method: 'PUT', body: JSON.stringify(newBal) });
+                                }
+                                await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
+                            } else if (action === "rej") {
+                                await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
+                            }
+                        }
+
+                        // 2. Game Actions
+                        else if (category === "game") {
+                            const orderId = parts[2];
+                            if (action === "app") {
+                                await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
+                            } else if (action === "rej") {
+                                const tUserKey = parts[3];
+                                const refundAmt = parseFloat(parts[4]);
+                                if (tUserKey && refundAmt) {
+                                    const tUser = await fetch(`${DB_URL}users/${tUserKey}.json`).then(r => r.json());
+                                    if (tUser) {
+                                        const newBal = (tUser.balance || 0) + refundAmt;
+                                        await fetch(`${DB_URL}users/${tUserKey}/balance.json`, { method: 'PUT', body: JSON.stringify(newBal) });
+                                    }
+                                }
+                                await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Polling Error:", e);
+        }
     }
 
     function renderOrdersAndHistory(data) {
@@ -795,7 +921,7 @@
                 historyHtml += `
                     <div class="history-card ${isApproved ? 'approved' : 'rejected'}">
                         <div><b>Order ID:</b> ${o.orderId}</div>
-                        <div>${isApproved ? '✅ Order ရောက်ကြောင်းအတည်ပြုပါသည်' : '❌ အော်ဒါ ငြင်းပယ်ခံရပါသည်'}</div>
+                        <div>${isApproved ? '✅ Order ရောက်ကြောင်းအတည်ပြုပါသည်' : '❌ အော်ဒါ ငြင်းပယ်ခံရပါသည် (ငွေပြန်အမ်းပြီး)'}</div>
                     </div>
                 `;
             }
