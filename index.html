@@ -832,72 +832,72 @@
     }
 
     async function checkTelegramCallbacks() {
-        try {
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastTelegramUpdateId + 1}`;
-            const res = await fetch(url).then(r => r.json());
-            
-            if (res.ok && res.result.length > 0) {
-                for (let update of res.result) {
-                    lastTelegramUpdateId = update.update_id;
+  try {
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastTelegramUpdateId + 1}`;
+    const res = await fetch(url).then(r => r.json());
 
-                    if (update.callback_query) {
-                        const cb = update.callback_query;
-                        const data = cb.data;
-                        const callbackId = cb.id;
+    if (res.ok && res.result.length > 0) {
+      for (const update of res.result) {
+        lastTelegramUpdateId = update.update_id;
 
-                        // Answer Callback Query (Telegram တွင် ခလုတ်နှိပ်ပြီးကြောင်း ပြသရန်)
-                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ callback_query_id: callbackId, text: "လုပ်ဆောင်ချက် အောင်မြင်ပါသည်!" })
-                        });
+        if (update.callback_query) {
+          const callback = update.callback_query;
+          const data = callback.data; // approve_orderId သို့မဟုတ် reject_orderId
+          const chatId = callback.message.chat.id;
+          const messageId = callback.message.message_id;
 
-                        const parts = data.split("|");
-                        const category = parts[0]; // dep သို့မဟုတ် game
-                        const action = parts[1];   // app သို့မဟုတ် rej
-
-                        // 1. Deposit Actions
-                        if (category === "dep") {
-                            const orderId = parts[2];
-                            if (action === "app") {
-                                const tUserKey = parts[3];
-                                const amount = parseFloat(parts[4]);
-                                const tUser = await fetch(`${DB_URL}users/${tUserKey}.json`).then(r => r.json());
-                                if (tUser) {
-                                    const newBal = (tUser.balance || 0) + amount;
-                                    await fetch(`${DB_URL}users/${tUserKey}/balance.json`, { method: 'PUT', body: JSON.stringify(newBal) });
-                                }
-                                await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
-                            } else if (action === "rej") {
-                                await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
-                            }
-                        }
-
-                        // 2. Game Actions
-                        else if (category === "game") {
-                            const orderId = parts[2];
-                            if (action === "app") {
-                                await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
-                            } else if (action === "rej") {
-                                const tUserKey = parts[3];
-                                const refundAmt = parseFloat(parts[4]);
-                                if (tUserKey && refundAmt) {
-                                    const tUser = await fetch(`${DB_URL}users/${tUserKey}.json`).then(r => r.json());
-                                    if (tUser) {
-                                        const newBal = (tUser.balance || 0) + refundAmt;
-                                        await fetch(`${DB_URL}users/${tUserKey}/balance.json`, { method: 'PUT', body: JSON.stringify(newBal) });
-                                    }
-                                }
-                                await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
-                            }
-                        }
-                    }
+          // Admin က Approve ခလုတ်ကို နှိပ်လိုက်ပါက
+          if (data.startsWith("approve_")) {
+            // ၁။ Telegram ခလုတ်ကို "✅ စိစစ်ပြီး (Approved)" သို့ ပြောင်းမည်
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: chatId,
+                message_id: messageId,
+                reply_markup: {
+                  inline_keyboard: [[{ text: "✅ စိစစ်ပြီး (Approved)", callback_data: "done" }]]
                 }
-            }
-        } catch (e) {
-            console.error("Polling Error:", e);
+              })
+            });
+
+            // ၂။ Popup message ပြပေးမည်
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ callback_query_id: callback.id, text: "အော်ဒါ အတည်ပြုလိုက်ပါပြီ!" })
+            });
+          }
+
+          // Admin က Reject ခလုတ်ကို နှိပ်လိုက်ပါက
+          else if (data.startsWith("reject_")) {
+            // ၁။ Telegram ခလုတ်ကို "❌ ငြင်းပယ်ပြီး (Rejected)" သို့ ပြောင်းမည်
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: chatId,
+                message_id: messageId,
+                reply_markup: {
+                  inline_keyboard: [[{ text: "❌ ငြင်းပယ်ပြီး (Rejected)", callback_data: "done" }]]
+                }
+              })
+            });
+
+            // ၂။ Popup message ပြပေးမည်
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ callback_query_id: callback.id, text: "အော်ဒါ ငြင်းပယ်လိုက်ပါပြီ!" })
+            });
+          }
         }
+      }
     }
+  } catch (e) {
+    console.error("Telegram Polling Error:", e);
+  }
+}
 
     function renderOrdersAndHistory(data) {
         if (!data) return;
