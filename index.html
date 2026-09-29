@@ -46,7 +46,6 @@
 
         .btn { width: 100%; padding: 12px; background: var(--primary-blue); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .auth-toggle { text-align: center; margin-top: 15px; font-size: 13px; color: var(--text-gray); }
         .auth-toggle span { color: var(--primary-blue); cursor: pointer; text-decoration: underline; }
 
@@ -124,7 +123,7 @@
         .item-card { 
             background: var(--card-black); 
             border: 1px solid var(--border-color); 
-            border-bottom: 4px solid var(--accent-red);
+            border-bottom: 4px solid var(--accent-red); /* 기본 Red Bottom Border */
             border-radius: 8px; 
             padding: 12px; 
             text-align: center; 
@@ -134,7 +133,7 @@
         }
         .item-card.selected { 
             border-color: var(--accent-green); 
-            border-bottom: 4px solid var(--accent-green);
+            border-bottom: 4px solid var(--accent-green); /* Selected Green Bottom Border */
             background: #064e3b; 
         }
 
@@ -375,7 +374,7 @@
                 </span>
             </div>
         </div>
-        <button class="btn" id="btnRegister" onclick="handleRegister()">အတည်ပြုမည်</button>
+        <button class="btn" onclick="handleRegister()">အတည်ပြုမည်</button>
         <div class="auth-toggle">
             အကောင့်ရှိပြီးသားလား? <span onclick="switchAuth('login')">Login ဝင်မည်</span>
         </div>
@@ -397,7 +396,7 @@
                 </span>
             </div>
         </div>
-        <button class="btn" id="btnLogin" onclick="handleLogin()">အတည်ပြုမည်</button>
+        <button class="btn" onclick="handleLogin()">အတည်ပြုမည်</button>
         <div class="auth-toggle" style="margin-top: 10px;">
             <span onclick="forgotPassword()">Password မေ့နေသည်</span>
         </div>
@@ -450,14 +449,14 @@
                     <input type="text" id="mlbbServer" placeholder="Zone ID (4-5 လုံး)" style="flex:1; padding:10px; background:var(--card-black); border:1px solid var(--border-color); color:white; border-radius:6px;" oninput="validateMlbb()">
                 </div>
                 <div class="item-grid" id="mlbbItems"></div>
-                <button class="btn" id="btnSubmitMlbb" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitMlbbOrder()">Diamond ဖြည့်မည်</button>
+                <button class="btn" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitMlbbOrder()">Diamond ဖြည့်မည်</button>
             </div>
 
             <!-- PUBG Form -->
             <div id="pubgForm" class="hidden">
                 <input type="text" id="pubgId" placeholder="PUBG Player ID" style="width:100%; padding:10px; margin-bottom:15px; background:var(--card-black); border:1px solid var(--border-color); color:white; border-radius:6px;" oninput="validatePubg()">
                 <div class="item-grid" id="pubgItems"></div>
-                <button class="btn" id="btnSubmitPubg" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitPubgOrder()">UC ဝယ်မည်</button>
+                <button class="btn" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitPubgOrder()">UC ဝယ်မည်</button>
             </div>
         </div>
 
@@ -500,7 +499,7 @@
                 <label>လုပ်ငန်းစဉ်နံပါတ် နောက်ဆုံး ၅ လုံး</label>
                 <input type="text" id="depLastDigits" maxlength="5" placeholder="12345">
             </div>
-            <button class="btn" id="btnSubmitDep" style="background:var(--accent-green); color:white;" onclick="submitDeposit()">အတည်ပြုမည်</button>
+            <button class="btn" style="background:var(--accent-green); color:white;" onclick="submitDeposit()">အတည်ပြုမည်</button>
         </div>
 
         <!-- Section: Orders (Active Running Orders) -->
@@ -605,8 +604,7 @@
     let selectedMlbbItem = null;
     let selectedPubgItem = null;
     let selectedPayType = null;
-    let syncTimer = null;
-    let isSyncing = false;
+    let lastTelegramUpdateId = 0; // Telegram polling tracker
 
     const mlbbPricing = [
         { name: "Weekly Pass", price: 6900 }, { name: "💎86", price: 5700 },
@@ -636,6 +634,7 @@
         }
     }
 
+    /* Toggle Collapsible Password Form */
     function togglePassForm() {
         const form = document.getElementById('passFormContainer');
         const arrow = document.getElementById('passArrow');
@@ -708,7 +707,6 @@
     function validatePassword(pass) { return /^(?=.*[A-Z])(?=.*\d)[^-_:;!]{6,}$/.test(pass); }
 
     async function handleRegister() {
-        const btn = document.getElementById('btnRegister');
         const gmail = document.getElementById('regGmail').value.trim().toLowerCase();
         const pass = document.getElementById('regPass').value.trim();
 
@@ -718,13 +716,11 @@
         const userKey = gmail.replace(/\./g, '_');
         
         try {
-            btn.disabled = true;
             showAlert("ခဏစောင့်ပါ...", 'info');
             const res = await fetch(`${DB_URL}users/${userKey}.json`);
             const check = await res.json();
             
             if (check && check.password) {
-                btn.disabled = false;
                 return showAlert("ဤ Gmail ဖြင့် အကောင့်ဖွင့်ထားပြီးသား ဖြစ်ပါသည်။ Login ဝင်ပါ။", 'error');
             }
 
@@ -755,14 +751,11 @@
             showAlert("အကောင့်သစ် အောင်မြင်စွာ ဖွင့်ပြီးပါပြီ!", 'success');
         } catch (err) {
             console.error(err);
-            showAlert("ဒေတာချိတ်ဆက်မှု မရရှိပါ။ အင်တာနက် သို့မဟုတ် Firebase Rules စစ်ဆေးပါ။", 'error');
-        } finally {
-            btn.disabled = false;
+            showAlert("ဒေတာချိတ်ဆက်မှု မရရှိပါ။ Firebase Rules ကို စစ်ဆေးပါ", 'error');
         }
     }
 
     async function handleLogin() {
-        const btn = document.getElementById('btnLogin');
         const gmail = document.getElementById('loginGmail').value.trim().toLowerCase();
         const pass = document.getElementById('loginPass').value.trim();
 
@@ -771,7 +764,6 @@
         const userKey = gmail.replace(/\./g, '_');
         
         try {
-            btn.disabled = true;
             showAlert("ခဏစောင့်ပါ...", 'info');
             const res = await fetch(`${DB_URL}users/${userKey}.json`);
             const userData = await res.json();
@@ -787,8 +779,6 @@
         } catch (err) {
             console.error(err);
             showAlert("အကောင့်ဝင်၍ မရသေးပါ။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပါ။", 'error');
-        } finally {
-            btn.disabled = false;
         }
     }
 
@@ -796,15 +786,12 @@
         const gmail = localStorage.getItem('kp_user_gmail');
         if (gmail) {
             const userKey = gmail.replace(/\./g, '_');
-            fetch(`${DB_URL}users/${userKey}.json`)
-                .then(r => r.json())
-                .then(userData => {
-                    if (userData) {
-                        currentUser = userData;
-                        initAppView();
-                    }
-                })
-                .catch(err => console.error("Auto Login Error:", err));
+            fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json()).then(userData => {
+                if (userData) {
+                    currentUser = userData;
+                    initAppView();
+                }
+            });
         }
     }
 
@@ -828,12 +815,10 @@
     }
 
     function updateProfileDisplay() {
-        if(!currentUser) return;
-        const balance = typeof currentUser.balance === 'number' ? currentUser.balance : 0;
-        const balStr = balance.toLocaleString() + " MMK";
-        document.getElementById('profUsId').innerText = currentUser.usId || "US-000";
-        document.getElementById('profGmail').innerText = currentUser.gmail || "";
-        document.getElementById('profBalance').innerText = balance.toLocaleString();
+        const balStr = currentUser.balance.toLocaleString() + " MMK";
+        document.getElementById('profUsId').innerText = currentUser.usId;
+        document.getElementById('profGmail').innerText = currentUser.gmail;
+        document.getElementById('profBalance').innerText = currentUser.balance.toLocaleString();
         document.getElementById('topHeaderBalance').innerText = balStr;
     }
 
@@ -892,14 +877,12 @@
     }
 
     async function submitDeposit() {
-        const btn = document.getElementById('btnSubmitDep');
         const amount = parseFloat(document.getElementById('depAmount').value);
         const proofFile = document.getElementById('depProof').files[0];
         const lastDigits = document.getElementById('depLastDigits').value.trim();
 
         if (!selectedPayType || !amount || !lastDigits || !proofFile) return showAlert("အချက်အလက်များ ပြည့်စုံစွာ ဖြည့်ပါ။", 'error');
 
-        btn.disabled = true;
         const orderId = `orkp${Math.floor(1000 + Math.random() * 9000)}`;
         const time = new Date().toLocaleString();
         const userKey = currentUser.gmail.replace(/\./g, '_');
@@ -918,19 +901,17 @@
         try {
             await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
         } catch (e) {
-            console.error("Telegram Error:", e);
+            console.error(e);
         }
 
         const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'deposit', amount, status: 'pending', time };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
 
-        btn.disabled = false;
         showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်အကောင့်သို့ ငွေဖြည့်ပေးပါမည်။", 'success');
         showNavSection('orderSection', 'navOrder');
     }
 
     async function submitMlbbOrder() {
-        const btn = document.getElementById('btnSubmitMlbb');
         const gameId = document.getElementById('mlbbId').value.trim();
         const serverId = document.getElementById('mlbbServer').value.trim();
 
@@ -942,7 +923,6 @@
 
         if (currentUser.balance < selectedMlbbItem.price) return showAlert("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပါ။", 'error');
 
-        btn.disabled = true;
         const orderId = `ordi${Math.floor(1000 + Math.random() * 9000)}`;
         const userKey = currentUser.gmail.replace(/\./g, '_');
         const time = new Date().toLocaleString();
@@ -959,13 +939,11 @@
         const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'mlbb', item: selectedMlbbItem.name, price: selectedMlbbItem.price, gameId, serverId, status: 'pending', time };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
 
-        btn.disabled = false;
         showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်ဂိမ်းအကောင့်ထဲသို့ diamond ဖြည့်ပေးပါမည်။", 'success');
         showNavSection('orderSection', 'navOrder');
     }
 
     async function submitPubgOrder() {
-        const btn = document.getElementById('btnSubmitPubg');
         const gameId = document.getElementById('pubgId').value.trim();
 
         if (!gameId || gameId.length < 7) {
@@ -976,7 +954,6 @@
 
         if (currentUser.balance < selectedPubgItem.price) return showAlert("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပါ။", 'error');
 
-        btn.disabled = true;
         const orderId = `ordp${Math.floor(1000 + Math.random() * 9000)}`;
         const userKey = currentUser.gmail.replace(/\./g, '_');
         const time = new Date().toLocaleString();
@@ -993,7 +970,6 @@
         const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'pubg', item: selectedPubgItem.name, price: selectedPubgItem.price, gameId, status: 'pending', time };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
 
-        btn.disabled = false;
         showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်အကောင့်အား UC ဖြည့်သွင်းပေးပါမည်။", 'success');
         showNavSection('orderSection', 'navOrder');
     }
@@ -1016,52 +992,154 @@
                 })
             });
         } catch (e) {
-            console.error("Telegram Send Error:", e);
+            console.error(e);
         }
     }
 
     function startRealtimeSync() {
-        if (syncTimer) clearInterval(syncTimer);
-        
-        syncTimer = setInterval(async () => {
-            if (!currentUser || isSyncing) return;
-            isSyncing = true;
+        setInterval(async () => {
+            if (!currentUser) return;
 
-            try {
-                const userKey = currentUser.gmail.replace(/\./g, '_');
-                const freshUser = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
-                if (freshUser) {
-                    currentUser = freshUser;
-                    updateProfileDisplay();
-                }
-
-                const allOrders = await fetch(`${DB_URL}orders.json`).then(r => r.json());
-                renderOrdersAndHistory(allOrders);
-            } catch (err) {
-                console.error("Sync error:", err);
-            } finally {
-                isSyncing = false;
+            const userKey = currentUser.gmail.replace(/\./g, '_');
+            const freshUser = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
+            if (freshUser) {
+                currentUser = freshUser;
+                updateProfileDisplay();
             }
+
+            const allOrders = await fetch(`${DB_URL}orders.json`).then(r => r.json());
+            renderOrdersAndHistory(allOrders);
+
+            checkTelegramCallbacks();
+
         }, 3000);
     }
 
+    async function checkTelegramCallbacks() {
+        try {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastTelegramUpdateId + 1}`;
+            const res = await fetch(url).then(r => r.json());
+
+            if (res.ok && res.result.length > 0) {
+                for (const update of res.result) {
+                    lastTelegramUpdateId = update.update_id;
+
+                    if (update.callback_query) {
+                        const callback = update.callback_query;
+                        const data = callback.data; 
+                        const chatId = callback.message.chat.id;
+                        const messageId = callback.message.message_id;
+                        const parts = data.split('|');
+
+                        let notificationText = "";
+
+                        if (parts[0] === 'dep' && parts[1] === 'app') {
+                            const orderId = parts[2];
+                            const userKey = parts[3];
+                            const amount = parseFloat(parts[4]);
+
+                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
+                            
+                            const uRes = await fetch(`${DB_URL}users/${userKey}/balance.json`);
+                            const currentBal = (await uRes.json()) || 0;
+                            await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(currentBal + amount) });
+
+                            notificationText = "ငွေဖြည့်အော်ဒါကို အတည်ပြုပြီး လက်ကျန်ငွေ ပေါင်းထည့်ပေးလိုက်ပါပြီ!";
+
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    reply_markup: { inline_keyboard: [[{ text: "✅ စိစစ်ပြီး (Approved)", callback_data: "done" }]] }
+                                })
+                            });
+                        }
+                        else if (parts[0] === 'dep' && parts[1] === 'rej') {
+                            const orderId = parts[2];
+
+                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
+
+                            notificationText = "ငွေဖြည့်အော်ဒါကို ငြင်းပယ်လိုက်ပါပြီ!";
+
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    reply_markup: { inline_keyboard: [[{ text: "❌ ငြင်းပယ်ပြီး (Rejected)", callback_data: "done" }]] }
+                                })
+                            });
+                        }
+                        else if (parts[0] === 'game' && parts[1] === 'app') {
+                            const orderId = parts[2];
+
+                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
+
+                            notificationText = "ဂိမ်းအော်ဒါကို အတည်ပြုပေးလိုက်ပါပြီ!";
+
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    reply_markup: { inline_keyboard: [[{ text: "✅ စိစစ်ပြီး (Approved)", callback_data: "done" }]] }
+                                })
+                            });
+                        }
+                        else if (parts[0] === 'game' && parts[1] === 'rej') {
+                            const orderId = parts[2];
+                            const userKey = parts[3];
+                            const price = parseFloat(parts[4]);
+
+                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
+
+                            const uRes = await fetch(`${DB_URL}users/${userKey}/balance.json`);
+                            const currentBal = (await uRes.json()) || 0;
+                            await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(currentBal + price) });
+
+                            notificationText = "ဂိမ်းအော်ဒါကို ငြင်းပယ်ပြီး ငွေပြန်အမ်းပေးလိုက်ပါပြီ!";
+
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    reply_markup: { inline_keyboard: [[{ text: "❌ ငြင်းပယ်ပြီး (Rejected)", callback_data: "done" }]] }
+                                })
+                            });
+                        }
+
+                        if (notificationText) {
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ callback_query_id: callback.id, text: notificationText })
+                            });
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Telegram Polling Error:", e);
+        }
+    }
+
     function renderOrdersAndHistory(data) {
+        if (!data) return;
         const activeList = document.getElementById('activeOrdersList');
         const historyList = document.getElementById('historyList');
         const statementList = document.getElementById('statementList');
-
-        if (!data) {
-            activeList.innerHTML = "လက်ရှိ အော်ဒါ မရှိပါ။";
-            historyList.innerHTML = "မှတ်တမ်း မရှိပါ။";
-            statementList.innerHTML = "ငွေဝင်ငွေထွက် မှတ်တမ်း မရှိသေးပါ။";
-            return;
-        }
 
         let activeHtml = "";
         let historyHtml = "";
         let statementHtml = "";
 
-        const myOrders = Object.values(data).filter(o => o && o.gmail === currentUser.gmail).reverse();
+        const myOrders = Object.values(data).filter(o => o.gmail === currentUser.gmail).reverse();
 
         myOrders.forEach(o => {
             if (o.status === 'pending') {
@@ -1086,7 +1164,7 @@
                 statementHtml += `
                     <div class="statement-card income">
                         <div>
-                            <div style="font-weight:bold; color:var(--accent-green);">+${(o.amount || 0).toLocaleString()} MMK</div>
+                            <div style="font-weight:bold; color:var(--accent-green);">+${o.amount.toLocaleString()} MMK</div>
                             <div style="font-size:12px; color:var(--text-gray);">ငွေဖြည့်သွင်းခြင်း အောင်မြင်မှု</div>
                         </div>
                         <div style="font-size:11px; color:var(--text-gray); text-align:right;">${o.time || 'အတည်ပြုပြီး'}</div>
@@ -1097,7 +1175,7 @@
                     statementHtml += `
                         <div class="statement-card income">
                             <div>
-                                <div style="font-weight:bold; color:var(--accent-green);">+${(o.price || 0).toLocaleString()} MMK</div>
+                                <div style="font-weight:bold; color:var(--accent-green);">+${o.price.toLocaleString()} MMK</div>
                                 <div style="font-size:12px; color:var(--text-gray);">${o.type.toUpperCase()} - အော်ဒါပယ်ဖျက်၍ ငွေပြန်အမ်းခြင်း</div>
                             </div>
                             <div style="font-size:11px; color:var(--text-gray); text-align:right;">${o.orderId}</div>
@@ -1107,8 +1185,8 @@
                     statementHtml += `
                         <div class="statement-card expense">
                             <div>
-                                <div style="font-weight:bold; color:var(--accent-red);">-${(o.price || 0).toLocaleString()} MMK</div>
-                                <div style="font-size:12px; color:var(--text-gray);">${o.type.toUpperCase()} - ${o.item || ''} ဝယ်ယူမှု</div>
+                                <div style="font-weight:bold; color:var(--accent-red);">-${o.price.toLocaleString()} MMK</div>
+                                <div style="font-size:12px; color:var(--text-gray);">${o.type.toUpperCase()} - ${o.item} ဝယ်ယူမှု</div>
                             </div>
                             <div style="font-size:11px; color:var(--text-gray); text-align:right;">${o.orderId}</div>
                         </div>
@@ -1134,13 +1212,13 @@
         currentUser.password = newP;
         showAlert("Password အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။", 'success');
         
+        // Clear fields and hide container after change
         document.getElementById('oldPass').value = '';
         document.getElementById('newPass').value = '';
         togglePassForm();
     }
 
     function handleLogout() {
-        if (syncTimer) clearInterval(syncTimer);
         localStorage.removeItem('kp_user_gmail');
         location.reload();
     }
