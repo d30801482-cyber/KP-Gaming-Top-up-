@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KP Gaming Shops</title>
+    <!-- Google Myanmar Font (Noto Sans Myanmar) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-black: #0f172a;
+            --card-black: #1e293b;
+            --primary-blue: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --text-white: #f8fafc;
+            --text-gray: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Noto Sans Myanmar', sans-serif !important; 
+        }
+        body { background-color: var(--bg-black); color: var(--text-white); display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 480px; background-color: #020617; min-height: 100vh; position: relative; padding-bottom: 75px; }
+        .hidden { display: none !important; }
+
+        /* Auth UI */
+        .auth-container { padding: 30px 20px; }
+        .auth-title { text-align: center; color: var(--primary-blue); font-size: 24px; margin-bottom: 25px; font-weight: bold; }
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; margin-bottom: 6px; color: var(--text-gray); font-size: 13px; }
+        .input-group input[type="text"], .input-group input[type="email"], .input-group input[type="password"], .input-group input[type="number"] { width: 100%; padding: 12px; background: var(--card-black); border: 1px solid var(--border-color); border-radius: 8px; color: white; outline: none; }
+        .input-group input:focus { border-color: var(--primary-blue); }
+        .btn { width: 100%; padding: 12px; background: var(--primary-blue); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .auth-toggle { text-align: center; margin-top: 15px; font-size: 13px; color: var(--text-gray); }
+        .auth-toggle span { color: var(--primary-blue); cursor: pointer; text-decoration: underline; }
+
+        /* Custom File Upload Input */
+        .custom-file-upload {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px;
+            background: var(--card-black);
+            border: 1px dashed var(--primary-blue);
+            border-radius: 8px;
+            color: var(--primary-blue);
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .custom-file-upload:hover { background: #1e3a8a; }
+
+        /* Header UI */
+        .top-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--card-black); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 10; }
+        .logo-title { font-size: 16px; font-weight: bold; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: var(--card-black); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border-color); z-index: 100; }
+        .nav-item { color: var(--text-gray); font-size: 11px; cursor: pointer; text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-item svg { width: 20px; height: 20px; fill: currentColor; }
+        .nav-item.active { color: var(--primary-blue); }
+
+        /* Content Sections */
+        .content-section { padding: 15px; }
+        .game-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; background: var(--card-black); border: 1px solid var(--border-color); border-radius: 8px; color: white; cursor: pointer; text-align: center; font-weight: bold; }
+        .tab-btn.active { border-color: var(--primary-blue); background: #1e3a8a; }
+
+        .item-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .item-card { background: var(--card-black); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; position: relative; }
+        .item-card.selected { border-color: var(--accent-green); background: #064e3b; }
+
+        /* Custom Modern Alert Toast Modal */
+        .custom-toast-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+        .custom-toast-box {
+            background: #0f172a;
+            border: 2px solid var(--primary-blue);
+            border-radius: 16px;
+            padding: 22px;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+            animation: toastIn 0.25s ease-out;
+        }
+        .custom-toast-box.error {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+        .custom-toast-box.success {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+        @keyframes toastIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .toast-icon { font-size: 32px; margin-bottom: 10px; }
+        .toast-msg { font-size: 14px; color: #f8fafc; margin-bottom: 18px; line-height: 1.5; font-weight: 500; }
+        .toast-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-blue);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Notice Modal */
+        .modal { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0, 0, 0, 0.88); 
+            backdrop-filter: blur(8px); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 1000; 
+            padding: 20px; 
+        }
+
+        .modal-content { 
+            background: rgba(15, 23, 42, 0.95); 
+            border: 2px solid #ef4444; 
+            border-radius: 16px; 
+            padding: 22px; 
+            width: 100%; 
+            max-width: 420px; 
+            max-height: 85vh; 
+            overflow-y: auto; 
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.4); 
+            color: #f8fafc; 
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .notice-header {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #ef4444;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+            margin-bottom: 16px;
+            border-bottom: 1px dashed rgba(239, 68, 68, 0.4);
+            padding-bottom: 10px;
+        }
+
+        .notice-card {
+            background: rgba(239, 68, 68, 0.08);
+            border-left: 4px solid #ef4444;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+        }
+
+        .notice-card h4 { color: #fca5a5; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        .notice-card p { color: #cbd5e1; font-size: 12px; line-height: 1.6; }
+
+        .btn-admin-glow {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 14px;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+        }
+
+        .btn-close-glow {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 8px;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+        
+        .validation-error { border-color: var(--accent-red) !important; }
+        .validation-success { border-color: var(--accent-green) !important; }
+
+        .history-card { background: var(--card-black); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--border-color); }
+        .history-card.approved { border-left-color: var(--accent-green); }
+        .history-card.rejected { border-left-color: var(--accent-red); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- CUSTOM TOAST ALERT MODAL -->
+    <div id="customToast" class="custom-toast-overlay hidden">
+        <div class="custom-toast-box" id="toastBox">
+            <div class="toast-icon" id="toastIcon">🔔</div>
+            <div class="toast-msg" id="toastMsg">သတိပေးချက် မက်ဆေ့ဂျ်</div>
+            <button class="toast-btn" onclick="closeToast()">အတည်ပြုပါပြီ</button>
+        </div>
+    </div>
+
+    <!-- NOTICE MODAL -->
+    <div id="noticeModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="notice-header">
+                📢 KP Gaming Shops အသိပေးချက် 🎮
+            </div>
+
+            <div class="notice-card">
+                <h4>⏰ ၁။ စနစ်ထိန်းသိမ်းမှု / Server Maintenance</h4>
+                <p><b>[မနက် ၈:၀၀ နာရီ မှ ည ၈:၀၀ နာရီ]</b> ထိ ငွေဖြည့်မှုနှင့် ဝယ်ယူမှုများကို အမြန်ဆုံး ဝန်ဆောင်မှု ပေးလျက်ရှိပါသည်။ ✨</p>
+            </div>
+
+            <div class="notice-card">
+                <h4>⚠️ ၂။ ID မှားယွင်းမှု မရှိစေရန် သတိပေးချက်</h4>
+                <p>ကျေးဇူးပြု၍ မိမိ၏ <b>Game ID</b> နှင့် <b>Server ID</b> ကို သေချာစစ်ဆေးပါ။ ID မှားယွင်းပါက မိမိတို့ App ဘက်မှ အာမခံပေးမည် မဟုတ်ပါ။ 🎯</p>
+            </div>
+
+            <div class="notice-card">
+                <h4>🛡️ ၃။ လုံခြုံရေး သတိပြုရန် (Scam Warning)</h4>
+                <p>KP Gaming Shops ဝန်ထမ်းများသည် Password (သို့) OTP များကို မည်သည့်အခါမျှ တောင်းခံမည် မဟုတ်ပါ။ 🔒</p>
+            </div>
+
+            <div class="notice-card">
+                <h4>🚨 ၄။ အော်ဒါ မရောက်ရှိပါက အကြောင်းကြားရန်</h4>
+                <p>ငွေသွင်း/ဝယ်ယူမှု မရောက်ပါက Admin ထံ ချက်ချင်း လာရောက် ပြောဆိုပေးပါရန်။ ⏱️</p>
+            </div>
+
+            <div class="notice-card">
+                <h4>❌ ၅။ ပြေစာအတု ပြုလုပ်ခြင်း</h4>
+                <p>ပြေစာအတုဖြင့် အော်ဒါတင်ပါက အကောင့်အား အပြီးပိတ်သိမ်းပြီး အရေးယူ ဆောင်ရွက်ပါမည်။ 🛑</p>
+            </div>
+
+            <div class="notice-card">
+                <h4>🔄 ၆။ ထပ်ခါထပ်ခါ အော်ဒါ မတင်ရန်</h4>
+                <p>အော်ဒါတစ်ခု တင်ပြီးပါက ခနစောင့်ပေးပါ။ ခနခန တင်ခြင်းသည် ကြန့်ကြာမှုကို ဖြစ်စေပါသည်။ ⏳</p>
+            </div>
+
+            <button class="btn-admin-glow" onclick="window.open('https://t.me/kp_official_1', '_blank')">
+                💬 Admin သို့ တိုက်ရိုက် ဆက်သွယ်ရန်
+            </button>
+            <button class="btn-close-glow" onclick="closeNotice()">
+                👍 နားလည်ပါပြီ (စတင်မည်)
+            </button>
+        </div>
+    </div>
+
+    <!-- 1. REGISTER VIEW -->
+    <div id="registerView" class="auth-container">
+        <div class="auth-title">အကောင့်သစ်ဖွင့်ရန်</div>
+        <div class="input-group">
+            <label>Gmail (@gmail.com ပါဝင်ရမည်)</label>
+            <input type="email" id="regGmail" placeholder="example@gmail.com">
+        </div>
+        <div class="input-group">
+            <label>Password (စာလုံးကြီးပါရမည်၊ ဂဏန်းပါရမည်၊ -_:;! မပါရ)</label>
+            <input type="password" id="regPass" placeholder="Password ရိုက်ထည့်ပါ">
+        </div>
+        <button class="btn" onclick="handleRegister()">အတည်ပြုမည်</button>
+        <div class="auth-toggle">
+            အကောင့်ရှိပြီးသားလား? <span onclick="switchAuth('login')">Login ဝင်မည်</span>
+        </div>
+    </div>
+
+    <!-- 2. LOGIN VIEW -->
+    <div id="loginView" class="auth-container hidden">
+        <div class="auth-title">အကောင့်ဝင်ရန်</div>
+        <div class="input-group">
+            <label>Gmail</label>
+            <input type="email" id="loginGmail" placeholder="example@gmail.com">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="loginPass" placeholder="Password">
+        </div>
+        <button class="btn" onclick="handleLogin()">အတည်ပြုမည်</button>
+        <div class="auth-toggle" style="margin-top: 10px;">
+            <span onclick="forgotPassword()">Password မေ့နေသည်</span>
+        </div>
+        <div class="auth-toggle">
+            အကောင့်မရှိဘူးလား? <span onclick="switchAuth('register')">အကောင့်သစ်ဖွင့်မည်</span>
+        </div>
+    </div>
+
+    <!-- MAIN APP DASHBOARD -->
+    <div id="mainApp" class="hidden">
+        <!-- Top Header -->
+        <div class="top-header">
+            <!-- SVG Clock Icon for History -->
+            <div style="cursor:pointer; display:flex; align-items:center;" onclick="showNavSection('historySection', 'navHistory')">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="#94a3b8"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 1 1 7 7 7.07 7.07 0 0 1-6-3.42l-1.42 1.42A8.91 8.91 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+            </div>
+            <div class="logo-title">Game Top Up</div>
+            <!-- SVG Settings Icon for Profile -->
+            <div style="cursor:pointer; display:flex; align-items:center;" onclick="showSection('profileSection')">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="#94a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+        </div>
+
+        <!-- Section: Shop (Game Items) -->
+        <div id="shopSection" class="content-section">
+            <div class="game-tabs">
+                <div class="tab-btn active" id="tabMlbb" onclick="switchGame('mlbb')">Mobile Legends</div>
+                <div class="tab-btn" id="tabPubg" onclick="switchGame('pubg')">PUBG Mobile</div>
+            </div>
+
+            <!-- MLBB Form -->
+            <div id="mlbbForm">
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <input type="text" id="mlbbId" placeholder="User ID (9-10 လုံး)" style="flex:2; padding:10px; background:var(--card-black); border:1px solid var(--border-color); color:white; border-radius:6px;" oninput="validateMlbb()">
+                    <input type="text" id="mlbbServer" placeholder="Zone ID (4-5 လုံး)" style="flex:1; padding:10px; background:var(--card-black); border:1px solid var(--border-color); color:white; border-radius:6px;" oninput="validateMlbb()">
+                </div>
+                <div class="item-grid" id="mlbbItems"></div>
+                <button class="btn" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitMlbbOrder()">Diamond ဖြည့်မည်</button>
+            </div>
+
+            <!-- PUBG Form -->
+            <div id="pubgForm" class="hidden">
+                <input type="text" id="pubgId" placeholder="PUBG Player ID" style="width:100%; padding:10px; margin-bottom:15px; background:var(--card-black); border:1px solid var(--border-color); color:white; border-radius:6px;" oninput="validatePubg()">
+                <div class="item-grid" id="pubgItems"></div>
+                <button class="btn" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitPubgOrder()">UC ဝယ်မည်</button>
+            </div>
+        </div>
+
+        <!-- Section: Deposit -->
+        <div id="depositSection" class="content-section hidden">
+            <h3 style="margin-bottom:15px; text-align:center;">💳 ငွေဖြည့်ရန်</h3>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button class="btn" onclick="selectPay('wave')">WavePay</button>
+                <button class="btn" onclick="selectPay('kpay')">KPay</button>
+            </div>
+            <div id="payDetails" class="hidden" style="background:var(--card-black); padding:15px; border-radius:8px; margin-bottom:15px;">
+                <p>နမည်: <b id="payName"></b></p>
+                <p>ဖုန်း: <b id="payPhone"></b></p>
+            </div>
+            <div class="input-group">
+                <label>ငွေပမာဏ (MMK)</label>
+                <input type="number" id="depAmount" placeholder="0.00">
+            </div>
+            
+            <!-- SMART CUSTOM FILE UPLOAD BUTTON -->
+            <div class="input-group">
+                <label>ပြေစာ စခရင်ရှော့</label>
+                <input type="file" id="depProof" accept="image/*" class="hidden" onchange="updateFileName(this)">
+                <label for="depProof" class="custom-file-upload" id="fileUploadBtn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54-1.96-2.36L6.5 17h11l-3.54-4.71z"/></svg>
+                    <span id="fileNameText">ဓာတ်ပုံတင်ရန်</span>
+                </label>
+            </div>
+
+            <div class="input-group">
+                <label>လုပ်ငန်းစဉ်နံပါတ် နောက်ဆုံး ၅ လုံး</label>
+                <input type="text" id="depLastDigits" maxlength="5" placeholder="12345">
+            </div>
+            <button class="btn" style="background:var(--accent-green); color:white;" onclick="submitDeposit()">အတည်ပြုမည်</button>
+        </div>
+
+        <!-- Section: Orders (Active Running Orders) -->
+        <div id="orderSection" class="content-section hidden">
+            <h3 style="margin-bottom:15px;">🛍️ လက်ရှိ အော်ဒါများ</h3>
+            <div id="activeOrdersList"></div>
+        </div>
+
+        <!-- Section: History -->
+        <div id="historySection" class="content-section hidden">
+            <div style="cursor:pointer; margin-bottom:10px; display:inline-flex; align-items:center; gap:5px;" onclick="showNavSection('shopSection', 'navShop')">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> ပင်မသို့
+            </div>
+            <h3>📜 လုပ်ဆောင်မှု မှတ်တမ်းများ</h3>
+            <div id="historyList" style="margin-top:15px;"></div>
+        </div>
+
+        <!-- Section: Profile -->
+        <div id="profileSection" class="content-section hidden">
+            <div style="cursor:pointer; margin-bottom:10px; display:inline-flex; align-items:center; gap:5px;" onclick="showNavSection('shopSection', 'navShop')">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> ပင်မသို့
+            </div>
+            <div style="background:var(--card-black); padding:15px; border-radius:8px;">
+                <p>User ID: <b id="profUsId"></b></p>
+                <p>Gmail: <b id="profGmail"></b></p>
+                <p>လက်ကျန်ငွေ: <b id="profBalance">0</b> MMK</p>
+                <hr style="border-color:var(--border-color); margin:15px 0;">
+                <h4>Password ပြောင်းရန်</h4>
+                <input type="password" id="oldPass" placeholder="ယခင် Password" style="width:100%; padding:8px; margin:5px 0; background:#0f172a; border:1px solid var(--border-color); color:white;">
+                <input type="password" id="newPass" placeholder="Password အသစ်" style="width:100%; padding:8px; margin:5px 0; background:#0f172a; border:1px solid var(--border-color); color:white;">
+                <button class="btn" style="margin-top:5px;" onclick="changePassword()">Password ပြောင်းမည်</button>
+                <button class="btn" style="background:var(--accent-red); color:white; margin-top:15px;" onclick="handleLogout()">Log Out</button>
+            </div>
+        </div>
+
+        <!-- SVG Powered Vector Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" id="navShop" onclick="showNavSection('shopSection', 'navShop')">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
+                <span>ဆိုင်</span>
+            </div>
+            <div class="nav-item" id="navDeposit" onclick="showNavSection('depositSection', 'navDeposit')">
+                <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                <span>ငွေဖြည့်</span>
+            </div>
+            <div class="nav-item" id="navOrder" onclick="showNavSection('orderSection', 'navOrder')">
+                <svg viewBox="0 0 24 24"><path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z"/></svg>
+                <span>အော်ဒါ</span>
+            </div>
+            <div class="nav-item" id="navHistory" onclick="showNavSection('historySection', 'navHistory')">
+                <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 1 1 7 7 7.07 7.07 0 0 1-6-3.42l-1.42 1.42A8.91 8.91 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                <span>မှတ်တမ်း</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const DB_URL = "https://gaming-top-up-692ce-default-rtdb.asia-southeast1.firebasedatabase.app/";
+    
+    // Telegram Bot Credentials
+    const BOT_TOKEN = "8899225049:AAGpv7SaaKShZ77eWVitRdbb-i36loYdeCg";
+    const ADMIN_CHAT_ID = "8318343193";
+
+    let currentUser = null;
+    let selectedMlbbItem = null;
+    let selectedPubgItem = null;
+    let selectedPayType = null;
+
+    const mlbbPricing = [
+        { name: "Weekly Pass", price: 6900 }, { name: "💎86", price: 5700 },
+        { name: "💎172", price: 11200 }, { name: "💎257", price: 16200 },
+        { name: "💎343", price: 21800 }, { name: "💎429", price: 27100 },
+        { name: "💎515", price: 32600 }, { name: "💎600", price: 37500 },
+        { name: "💎706", price: 43200 }, { name: "💎963", price: 59600 },
+        { name: "💎1049", price: 65000 }, { name: "💎1135", price: 70500 },
+        { name: "💎2195", price: 131000 }, { name: "💎3688", price: 217500 },
+        { name: "💎5532", price: 328500 }, { name: "💎9288", price: 544500 }
+    ];
+
+    const pubgPricing = [
+        { name: "60 UC", price: 4900 }, { name: "325 UC", price: 22300 },
+        { name: "660 UC", price: 44000 }, { name: "1800 UC", price: 109300 },
+        { name: "3850 UC", price: 213500 }, { name: "8100 UC", price: 422500 }
+    ];
+
+    // Telegram သို့ စာပို့ပေးမည့် Function
+    function sendToTelegram(messageText) {
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                chat_id: ADMIN_CHAT_ID,
+                text: messageText,
+                parse_mode: "Markdown"
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                alert("အော်ဒါ အချက်အလက်များကို Telegram သို့ အောင်မြင်စွာ ပို့ပြီးပါပြီ။");
+            } else {
+                alert("Telegram သို့ စာမရောက်ပါ။ Bot ကို Telegram တွင် /start နှိပ်ထားခြင်း ရှိမရှိ စစ်ဆေးပါ။");
+                console.error("Telegram Error:", data);
+            }
+        })
+        .catch(error => {
+            alert("ကွန်ရက် ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်။");
+            console.error("Error:", error);
+        });
+    }
+
+    function updateFileName(input) {
+        const txt = document.getElementById('fileNameText');
+        if (input.files && input.files[0]) {
+            txt.innerText = "📸 " + input.files[0].name;
+        } else {
+            txt.innerText = "ဓာတ်ပုံတင်ရန်";
+        }
+    }
+
+    function showAlert(msg, type = 'info') {
+        const toast = document.getElementById('customToast');
+        const box = document.getElementById('toastBox');
+        const icon = document.getElementById('toastIcon');
+        const text = document.getElementById('toastMsg');
+
+        box.className = 'custom-toast-box ' + type;
+        text.innerText = msg;
+
+        if (type === 'error') icon.innerText = '⚠️';
+        else if (type === 'success') icon.innerText = '✅';
+        else icon.innerText = '🔔';
+
+        toast.classList.remove('hidden');
+    }
+
+    function closeToast() {
+        document.getElementById('customToast').classList.add('hidden');
+    }
+
+    window.onload = function() {
+        renderItems();
+        checkLocalAuth();
+    };
+
+    function renderItems() {
+        const mlContainer = document.getElementById('mlbbItems');
+        mlContainer.innerHTML = mlbbPricing.map((item, idx) => `
+            <div class="item-card" id="mlItem-${idx}" onclick="selectMlbb(${idx})">
+                <div style="font-weight:bold;">${item.name}</div>
+                <div style="font-size:12px; color:var(--text-gray);">${item.price.toLocaleString()} MMK</div>
+            </div>
+        `).join('');
+
+        const pubgContainer = document.getElementById('pubgItems');
+        pubgContainer.innerHTML = pubgPricing.map((item, idx) => `
+            <div class="item-card" id="pubgItem-${idx}" onclick="selectPubg(${idx})">
+                <div style="font-weight:bold;">${item.name}</div>
+                <div style="font-size:12px; color:var(--text-gray);">${item.price.toLocaleString()} MMK</div>
+            </div>
+        `).join('');
+    }
+
+    function validateGmail(gmail) { return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(gmail); }
+    function validatePassword(pass) { return /^(?=.*[A-Z])(?=.*\d)[^-_:;!]{6,}$/.test(pass); }
+
+    async function handleRegister() {
+        const gmail = document.getElementById('regGmail').value.trim();
+        const pass = document.getElementById('regPass').value.trim();
+
+        if (!validateGmail(gmail)) return showAlert("Gmail တွင် @gmail.com ပါရှိရပါမည်။", 'error');
+        if (!validatePassword(pass)) return showAlert("Password တွင် အကြီးစာလုံးနှင့် ဂဏန်းပါရမည်။ -_:;! မပါရပါ!", 'error');
+
+        const userKey = gmail.replace(/\./g, '_');
+        const check = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
+        if (check) return showAlert("ဤ Gmail ဖြင့် အကောင့်ဖွင့်ထားပြီးသားဖြစ်ပါသည်။", 'error');
+
+        const count = await fetch(`${DB_URL}user_count.json`).then(r => r.json()) || 0;
+        const newCount = count + 1;
+        const usId = `US-${String(newCount).padStart(3, '0')}`;
+
+        const userData = { usId, gmail, password: pass, balance: 0 };
+        await fetch(`${DB_URL}users/${userKey}.json`, { method: 'PUT', body: JSON.stringify(userData) });
+        await fetch(`${DB_URL}user_count.json`, { method: 'PUT', body: JSON.stringify(newCount) });
+
+        localStorage.setItem('kp_user_gmail', gmail);
+        currentUser = userData;
+        initAppView();
+    }
+
+    async function handleLogin() {
+        const gmail = document.getElementById('loginGmail').value.trim();
+        const pass = document.getElementById('loginPass').value.trim();
+
+        const userKey = gmail.replace(/\./g, '_');
+        const userData = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
+
+        if (userData && userData.password === pass) {
+            localStorage.setItem('kp_user_gmail', gmail);
+            currentUser = userData;
+            initAppView();
+        } else {
+            showAlert("Gmail သို့မဟုတ် Password မှားယွင်းနေပါသည်။", 'error');
+        }
+    }
+
+    function checkLocalAuth() {
+        const gmail = localStorage.getItem('kp_user_gmail');
+        if (gmail) {
+            const userKey = gmail.replace(/\./g, '_');
+            fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json()).then(userData => {
+                if (userData) {
+                    currentUser = userData;
+                    initAppView();
+                }
+            });
+        }
+    }
+
+    function initAppView() {
+        document.getElementById('registerView').classList.add('hidden');
+        document.getElementById('loginView').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('noticeModal').classList.remove('hidden');
+        updateProfileDisplay();
+        startRealtimeSync();
+    }
+
+    function closeNotice() { document.getElementById('noticeModal').classList.add('hidden'); }
+    function switchAuth(type) {
+        document.getElementById('registerView').classList.toggle('hidden', type !== 'register');
+        document.getElementById('loginView').classList.toggle('hidden', type !== 'login');
+    }
+    function forgotPassword() {
+        showAlert("သင့်အကောင့်မှန်ကန်ကြောင်း admin ထံအရင်သက်သေပြပါ", 'info');
+        setTimeout(() => window.open("https://t.me/kp_official_1", "_blank"), 1500);
+    }
+
+    function updateProfileDisplay() {
+        document.getElementById('profUsId').innerText = currentUser.usId;
+        document.getElementById('profGmail').innerText = currentUser.gmail;
+        document.getElementById('profBalance').innerText = currentUser.balance.toLocaleString();
+    }
+
+    function showSection(id) {
+        ['shopSection', 'depositSection', 'orderSection', 'historySection', 'profileSection'].forEach(s => {
+            document.getElementById(s).classList.add('hidden');
+        });
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function showNavSection(id, navId) {
+        showSection(id);
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if (document.getElementById(navId)) document.getElementById(navId).classList.add('active');
+    }
+
+    function switchGame(game) {
+        document.getElementById('tabMlbb').classList.toggle('active', game === 'mlbb');
+        document.getElementById('tabPubg').classList.toggle('active', game === 'pubg');
+        document.getElementById('mlbbForm').classList.toggle('hidden', game !== 'mlbb');
+        document.getElementById('pubgForm').classList.toggle('hidden', game !== 'pubg');
+    }
+
+    function validateMlbb() {
+        const id = document.getElementById('mlbbId');
+        const zone = document.getElementById('mlbbServer');
+        id.className = (id.value.length >= 9 && id.value.length <= 10) ? 'validation-success' : 'validation-error';
+        zone.className = (zone.value.length >= 4 && zone.value.length <= 5) ? 'validation-success' : 'validation-error';
+    }
+
+    function validatePubg() {
+        const id = document.getElementById('pubgId');
+        id.className = (id.value.length >= 7) ? 'validation-success' : 'validation-error';
+    }
+
+    function selectMlbb(idx) {
+        selectedMlbbItem = mlbbPricing[idx];
+        document.querySelectorAll('#mlbbItems .item-card').forEach((c, i) => c.classList.toggle('selected', i === idx));
+    }
+
+    function selectPubg(idx) {
+        selectedPubgItem = pubgPricing[idx];
+        document.querySelectorAll('#pubgItems .item-card').forEach((c, i) => c.classList.toggle('selected', i === idx));
+    }
+
+    function selectPay(type) {
+        selectedPayType = type;
+        document.getElementById('payDetails').classList.remove('hidden');
+        if (type === 'wave') {
+            document.getElementById('payName').innerText = "Sun Sun Cho";
+            document.getElementById('payPhone').innerText = "09668639746";
+        } else {
+            document.getElementById('payName').innerText = "San San Cho";
+            document.getElementById('payPhone').innerText = "09671705735";
+        }
+    }
+
+    async function submitDeposit() {
+        const amount = parseFloat(document.getElementById('depAmount').value);
+        const proofFile = document.getElementById('depProof').files[0];
+        const lastDigits = document.getElementById('depLastDigits').value.trim();
+
+        if (!selectedPayType || !amount || !lastDigits || !proofFile) return showAlert("အချက်အလက်များ ပြည့်စုံစွာ ဖြည့်ပါ။", 'error');
+
+        const orderId = `orkp${Math.floor(1000 + Math.random() * 9000)}`;
+        const time = new Date().toLocaleString();
+
+        const formData = new FormData();
+        formData.append('chat_id', ADMIN_CHAT_ID);
+        formData.append('photo', proofFile);
+        formData.append('caption', `💰 *ငွေသွင်းအော်ဒါ*\n1. US: ${currentUser.usId}\n2. Order ID: ${orderId}\n3. ပမာဏ: ${amount} MMK\n4. Pay: ${selectedPayType}\n5. အချိန်: ${time}\n6. ကုဒ် ၅ လုံး: ${lastDigits}`);
+        formData.append('reply_markup', JSON.stringify({
+            inline_keyboard: [[
+                { text: "✅ အတည်ပြုမည်", callback_data: `dep_approve_${orderId}_${currentUser.gmail}_${amount}` },
+                { text: "❌ ငြင်းပယ်မည်", callback_data: `dep_reject_${orderId}` }
+            ]]
+        }));
+
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
+
+        const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'deposit', amount, status: 'pending', time };
+        await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
+
+        showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်အကောင့်သို့ ငွေဖြည့်ပေးပါမည်။", 'success');
+        showNavSection('orderSection', 'navOrder');
+    }
+
+    async function submitMlbbOrder() {
+        if (!selectedMlbbItem) return showAlert("Diamond ထုပ် ရွေးချယ်ပါ!", 'error');
+        const gameId = document.getElementById('mlbbId').value.trim();
+        const serverId = document.getElementById('mlbbServer').value.trim();
+
+        if (currentUser.balance < selectedMlbbItem.price) return showAlert("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပါ။", 'error');
+
+        const orderId = `ordi${Math.floor(1000 + Math.random() * 9000)}`;
+        const msg = `💎 *MLBB Diamond အော်ဒါ*\n1. US: ${currentUser.usId}\n2. Order ID: ${orderId}\n3. Game ID: ${gameId} (${serverId})\n4. Item: ${selectedMlbbItem.name}\n5. ကျသင့်ငွေ: ${selectedMlbbItem.price} MMK`;
+
+        sendToTelegram(msg);
+
+        const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'mlbb', item: selectedMlbbItem.name, price: selectedMlbbItem.price, gameId, serverId, status: 'pending' };
+        await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
+
+        showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်ဂိမ်းအကောင့်ထဲသို့ diamond ဖြည့်ပေးပါမည်။", 'success');
+        showNavSection('orderSection', 'navOrder');
+    }
+
+    async function submitPubgOrder() {
+        if (!selectedPubgItem) return showAlert("UC ထုပ် ရွေးချယ်ပါ!", 'error');
+        const gameId = document.getElementById('pubgId').value.trim();
+
+        if (currentUser.balance < selectedPubgItem.price) return showAlert("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပါ။", 'error');
+
+        const orderId = `ordp${Math.floor(1000 + Math.random() * 9000)}`;
+        const msg = `🔥 *PUBG UC အော်ဒါ*\n1. US: ${currentUser.usId}\n2. Order ID: ${orderId}\n3. Game ID: ${gameId}\n4. Item: ${selectedPubgItem.name}\n5. ကျသင့်ငွေ: ${selectedPubgItem.price} MMK`;
+
+        sendToTelegram(msg);
+
+        const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'pubg', item: selectedPubgItem.name, price: selectedPubgItem.price, gameId, status: 'pending' };
+        await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
+
+        showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်အကောင့်အား UC ဖြည့်သွင်းပေးပါမည်။", 'success');
+        showNavSection('orderSection', 'navOrder');
+    }
+
+    function startRealtimeSync() {
+        setInterval(async () => {
+            if (!currentUser) return;
+            const userKey = currentUser.gmail.replace(/\./g, '_');
+            const freshUser = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
+            if (freshUser) {
+                currentUser = freshUser;
+                updateProfileDisplay();
+            }
+
+            const allOrders = await fetch(`${DB_URL}orders.json`).then(r => r.json());
+            renderOrdersAndHistory(allOrders);
+        }, 3000);
+    }
+
+    function renderOrdersAndHistory(data) {
+        if (!data) return;
+        const activeList = document.getElementById('activeOrdersList');
+        const historyList = document.getElementById('historyList');
+
+        let activeHtml = "";
+        let historyHtml = "";
+
+        Object.values(data).filter(o => o.gmail === currentUser.gmail).reverse().forEach(o => {
+            if (o.status === 'pending') {
+                activeHtml += `
+                    <div class="history-card">
+                        <div><b>Order ID:</b> ${o.orderId}</div>
+                        <div><b>အမျိုးအစား:</b> ${o.type.toUpperCase()}</div>
+                        <div style="color:var(--primary-blue);">⏳ အော်ဒါစောင့်ဆိုင်းဆဲ...</div>
+                    </div>
+                `;
+            } else {
+                const isApproved = o.status === 'approved';
+                historyHtml += `
+                    <div class="history-card ${isApproved ? 'approved' : 'rejected'}">
+                        <div><b>Order ID:</b> ${o.orderId}</div>
+                        <div>${isApproved ? '✅ Order ရောက်ကြောင်းအတည်ပြုပါသည်' : '❌ အော်ဒါ ငြင်းပယ်ခံရပါသည်'}</div>
+                    </div>
+                `;
+            }
+        });
+
+        activeList.innerHTML = activeHtml || "လက်ရှိ အော်ဒါ မရှိပါ။";
+        historyList.innerHTML = historyHtml || "မှတ်တမ်း မရှိပါ။";
+    }
+
+    async function changePassword() {
+        const oldP = document.getElementById('oldPass').value;
+        const newP = document.getElementById('newPass').value;
+
+        if (oldP !== currentUser.password) return showAlert("ယခင် Password မှားယွင်းနေပါသည်။", 'error');
+        if (!validatePassword(newP)) return showAlert("Password အသစ်စည်းကမ်း မကိုက်ညီပါ။", 'error');
+
+        const userKey = currentUser.gmail.replace(/\./g, '_');
+        await fetch(`${DB_URL}users/${userKey}/password.json`, { method: 'PUT', body: JSON.stringify(newP) });
+        currentUser.password = newP;
+        showAlert("Password အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။", 'success');
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('kp_user_gmail');
+        location.reload();
+    }
+</script>
+</body>
+</html>
