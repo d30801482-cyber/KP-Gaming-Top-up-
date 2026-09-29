@@ -31,13 +31,19 @@
         .app-container { width: 100%; max-width: 480px; background-color: #020617; min-height: 100vh; position: relative; padding-bottom: 75px; }
         .hidden { display: none !important; }
 
-        /* Auth UI */
+        /* Auth UI & Password Field Wrapper */
         .auth-container { padding: 30px 20px; }
         .auth-title { text-align: center; color: var(--primary-blue); font-size: 24px; margin-bottom: 25px; font-weight: bold; }
         .input-group { margin-bottom: 18px; }
         .input-group label { display: block; margin-bottom: 6px; color: var(--text-gray); font-size: 13px; }
         .input-group input[type="text"], .input-group input[type="email"], .input-group input[type="password"], .input-group input[type="number"] { width: 100%; padding: 12px; background: var(--card-black); border: 1px solid var(--border-color); border-radius: 8px; color: white; outline: none; }
         .input-group input:focus { border-color: var(--primary-blue); }
+        
+        .password-wrapper { position: relative; display: flex; align-items: center; }
+        .password-wrapper input { padding-right: 40px !important; }
+        .toggle-password { position: absolute; right: 12px; cursor: pointer; color: var(--text-gray); user-select: none; display: flex; align-items: center; justify-content: center; }
+        .toggle-password svg { width: 20px; height: 20px; fill: currentColor; }
+
         .btn { width: 100%; padding: 12px; background: var(--primary-blue); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
         .auth-toggle { text-align: center; margin-top: 15px; font-size: 13px; color: var(--text-gray); }
@@ -62,9 +68,24 @@
         }
         .custom-file-upload:hover { background: #1e3a8a; }
 
-        /* Header UI */
-        .top-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--card-black); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 10; }
-        .logo-title { font-size: 16px; font-weight: bold; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; }
+        /* Top Header UI */
+        .top-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: var(--card-black); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 10; }
+        .logo-title { font-size: 16px; font-weight: bold; color: rgba(255, 255, 255, 0.9); text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* Balance Badge Top Left */
+        .balance-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid var(--primary-blue);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            cursor: pointer;
+        }
 
         /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: var(--card-black); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border-color); z-index: 100; }
@@ -75,14 +96,48 @@
         /* Content Sections */
         .content-section { padding: 15px; }
         .game-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 10px; background: var(--card-black); border: 1px solid var(--border-color); border-radius: 8px; color: white; cursor: pointer; text-align: center; font-weight: bold; }
+        .tab-btn { flex: 1; padding: 12px; background: var(--card-black); border: 1px solid var(--border-color); border-radius: 8px; color: white; cursor: pointer; text-align: center; font-weight: bold; transition: 0.2s; }
         .tab-btn.active { border-color: var(--primary-blue); background: #1e3a8a; }
 
-        .item-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .item-card { background: var(--card-black); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; position: relative; }
-        .item-card.selected { border-color: var(--accent-green); background: #064e3b; }
+        /* Title Line Switcher Button */
+        .statement-toggle-line {
+            width: 100%;
+            text-align: center;
+            margin: 10px 0 18px 0;
+            padding: 8px 0;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+        .statement-toggle-line::after {
+            content: '';
+            display: block;
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-blue), transparent);
+            margin: 8px auto 0 auto;
+        }
 
-        /* Custom Modern Alert Toast Modal */
+        /* Item Grid & Red/Green Bottom Border Styling */
+        .item-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .item-card { 
+            background: var(--card-black); 
+            border: 1px solid var(--border-color); 
+            border-bottom: 4px solid var(--accent-red); /* 기본 Red Bottom Border */
+            border-radius: 8px; 
+            padding: 12px; 
+            text-align: center; 
+            cursor: pointer; 
+            position: relative; 
+            transition: all 0.2s ease;
+        }
+        .item-card.selected { 
+            border-color: var(--accent-green); 
+            border-bottom: 4px solid var(--accent-green); /* Selected Green Bottom Border */
+            background: #064e3b; 
+        }
+
+        /* Toast Modal */
         .custom-toast-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -106,113 +161,23 @@
             box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
             animation: toastIn 0.25s ease-out;
         }
-        .custom-toast-box.error {
-            border-color: var(--accent-red);
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-        }
-        .custom-toast-box.success {
-            border-color: var(--accent-green);
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
-        }
-        @keyframes toastIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
+        .custom-toast-box.error { border-color: var(--accent-red); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+        .custom-toast-box.success { border-color: var(--accent-green); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+        @keyframes toastIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .toast-icon { font-size: 32px; margin-bottom: 10px; }
         .toast-msg { font-size: 14px; color: #f8fafc; margin-bottom: 18px; line-height: 1.5; font-weight: 500; }
-        .toast-btn {
-            width: 100%;
-            padding: 10px;
-            background: var(--primary-blue);
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .toast-btn { width: 100%; padding: 10px; background: var(--primary-blue); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* Notice Modal */
-        .modal { 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.88); 
-            backdrop-filter: blur(8px); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            z-index: 1000; 
-            padding: 20px; 
-        }
-
-        .modal-content { 
-            background: rgba(15, 23, 42, 0.95); 
-            border: 2px solid #ef4444; 
-            border-radius: 16px; 
-            padding: 22px; 
-            width: 100%; 
-            max-width: 420px; 
-            max-height: 85vh; 
-            overflow-y: auto; 
-            box-shadow: 0 0 25px rgba(239, 68, 68, 0.4); 
-            color: #f8fafc; 
-            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes modalPop {
-            0% { transform: scale(0.85); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .notice-header {
-            text-align: center;
-            font-size: 18px;
-            font-weight: 700;
-            color: #ef4444;
-            text-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
-            margin-bottom: 16px;
-            border-bottom: 1px dashed rgba(239, 68, 68, 0.4);
-            padding-bottom: 10px;
-        }
-
-        .notice-card {
-            background: rgba(239, 68, 68, 0.08);
-            border-left: 4px solid #ef4444;
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-bottom: 10px;
-        }
-
+        /* Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: rgba(15, 23, 42, 0.95); border: 2px solid #ef4444; border-radius: 16px; padding: 22px; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; box-shadow: 0 0 25px rgba(239, 68, 68, 0.4); color: #f8fafc; animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes modalPop { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .notice-header { text-align: center; font-size: 18px; font-weight: 700; color: #ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.6); margin-bottom: 16px; border-bottom: 1px dashed rgba(239, 68, 68, 0.4); padding-bottom: 10px; }
+        .notice-card { background: rgba(239, 68, 68, 0.08); border-left: 4px solid #ef4444; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
         .notice-card h4 { color: #fca5a5; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
         .notice-card p { color: #cbd5e1; font-size: 12px; line-height: 1.6; }
-
-        .btn-admin-glow {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 14px;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
-        }
-
-        .btn-close-glow {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 8px;
-            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-        }
+        .btn-admin-glow { width: 100%; padding: 12px; background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%); color: #ffffff; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 14px; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
+        .btn-close-glow { width: 100%; padding: 12px; background: linear-gradient(135deg, #15803d 0%, #22c55e 100%); color: #ffffff; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
         
         .validation-error { border-color: var(--accent-red) !important; }
         .validation-success { border-color: var(--accent-green) !important; }
@@ -220,6 +185,20 @@
         .history-card { background: var(--card-black); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--border-color); }
         .history-card.approved { border-left-color: var(--accent-green); }
         .history-card.rejected { border-left-color: var(--accent-red); }
+
+        /* Statement Record Card */
+        .statement-card {
+            background: var(--card-black);
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--border-color);
+        }
+        .statement-card.income { border-left-color: var(--accent-green); }
+        .statement-card.expense { border-left-color: var(--accent-red); }
     </style>
 </head>
 <body>
@@ -238,46 +217,33 @@
     <!-- NOTICE MODAL -->
     <div id="noticeModal" class="modal hidden">
         <div class="modal-content">
-            <div class="notice-header">
-                📢 KP Gaming Shops အသိပေးချက် 🎮
-            </div>
-
+            <div class="notice-header">📢 KP Gaming Shops အသိပေးချက် 🎮</div>
             <div class="notice-card">
                 <h4>⏰ ၁။ စနစ်ထိန်းသိမ်းမှု / Server Maintenance</h4>
                 <p><b>[မနက် ၈:၀၀ နာရီ မှ ည ၈:၀၀ နာရီ]</b> ထိ ငွေဖြည့်မှုနှင့် ဝယ်ယူမှုများကို အမြန်ဆုံး ဝန်ဆောင်မှု ပေးလျက်ရှိပါသည်။ ✨</p>
             </div>
-
             <div class="notice-card">
                 <h4>⚠️ ၂။ ID မှားယွင်းမှု မရှိစေရန် သတိပေးချက်</h4>
                 <p>ကျေးဇူးပြု၍ မိမိ၏ <b>Game ID</b> နှင့် <b>Server ID</b> ကို သေချာစစ်ဆေးပါ။ ID မှားယွင်းပါက မိမိတို့ App ဘက်မှ အာမခံပေးမည် မဟုတ်ပါ။ 🎯</p>
             </div>
-
             <div class="notice-card">
                 <h4>🛡️ ၃။ လုံခြုံရေး သတိပြုရန် (Scam Warning)</h4>
                 <p>KP Gaming Shops ဝန်ထမ်းများသည် Password (သို့) OTP များကို မည်သည့်အခါမျှ တောင်းခံမည် မဟုတ်ပါ။ 🔒</p>
             </div>
-
             <div class="notice-card">
                 <h4>🚨 ၄။ အော်ဒါ မရောက်ရှိပါက အကြောင်းကြားရန်</h4>
                 <p>ငွေသွင်း/ဝယ်ယူမှု မရောက်ပါက Admin ထံ ချက်ချင်း လာရောက် ပြောဆိုပေးပါရန်။ ⏱️</p>
             </div>
-
             <div class="notice-card">
                 <h4>❌ ၅။ ပြေစာအတု ပြုလုပ်ခြင်း</h4>
                 <p>ပြေစာအတုဖြင့် အော်ဒါတင်ပါက အကောင့်အား အပြီးပိတ်သိမ်းပြီး အရေးယူ ဆောင်ရွက်ပါမည်။ 🛑</p>
             </div>
-
             <div class="notice-card">
                 <h4>🔄 ၆။ ထပ်ခါထပ်ခါ အော်ဒါ မတင်ရန်</h4>
                 <p>အော်ဒါတစ်ခု တင်ပြီးပါက ခနစောင့်ပေးပါ။ ခနခန တင်ခြင်းသည် ကြန့်ကြာမှုကို ဖြစ်စေပါသည်။ ⏳</p>
             </div>
-
-            <button class="btn-admin-glow" onclick="window.open('https://t.me/kp_official_1', '_blank')">
-                💬 Admin သို့ တိုက်ရိုက် ဆက်သွယ်ရန်
-            </button>
-            <button class="btn-close-glow" onclick="closeNotice()">
-                👍 နားလည်ပါပြီ (စတင်မည်)
-            </button>
+            <button class="btn-admin-glow" onclick="window.open('https://t.me/kp_official_1', '_blank')">💬 Admin သို့ တိုက်ရိုက် ဆက်သွယ်ရန်</button>
+            <button class="btn-close-glow" onclick="closeNotice()">👍 နားလည်ပါပြီ (စတင်မည်)</button>
         </div>
     </div>
 
@@ -290,7 +256,12 @@
         </div>
         <div class="input-group">
             <label>Password (စာလုံးကြီးပါရမည်၊ ဂဏန်းပါရမည်၊ -_:;! မပါရ)</label>
-            <input type="password" id="regPass" placeholder="Password ရိုက်ထည့်ပါ">
+            <div class="password-wrapper">
+                <input type="password" id="regPass" placeholder="Password ရိုက်ထည့်ပါ">
+                <span class="toggle-password" onclick="togglePasswordVisibility('regPass', this)">
+                    <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </span>
+            </div>
         </div>
         <button class="btn" onclick="handleRegister()">အတည်ပြုမည်</button>
         <div class="auth-toggle">
@@ -307,7 +278,12 @@
         </div>
         <div class="input-group">
             <label>Password</label>
-            <input type="password" id="loginPass" placeholder="Password">
+            <div class="password-wrapper">
+                <input type="password" id="loginPass" placeholder="Password">
+                <span class="toggle-password" onclick="togglePasswordVisibility('loginPass', this)">
+                    <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </span>
+            </div>
         </div>
         <button class="btn" onclick="handleLogin()">အတည်ပြုမည်</button>
         <div class="auth-toggle" style="margin-top: 10px;">
@@ -322,11 +298,14 @@
     <div id="mainApp" class="hidden">
         <!-- Top Header -->
         <div class="top-header">
-            <!-- SVG Clock Icon for History -->
-            <div style="cursor:pointer; display:flex; align-items:center;" onclick="showNavSection('historySection', 'navHistory')">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="#94a3b8"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 1 1 7 7 7.07 7.07 0 0 1-6-3.42l-1.42 1.42A8.91 8.91 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+            <!-- Left Header: Account Balance Display -->
+            <div class="balance-badge" onclick="showNavSection('depositSection', 'navDeposit')" title="ငွေဖြည့်ရန် နှိပ်ပါ">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                <span id="topHeaderBalance">0 MMK</span>
             </div>
-            <div class="logo-title">Game Top Up</div>
+            
+            <div class="logo-title">KP GAMING SHOPS</div>
+            
             <!-- SVG Settings Icon for Profile -->
             <div style="cursor:pointer; display:flex; align-items:center;" onclick="showSection('profileSection')">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="#94a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -335,6 +314,18 @@
 
         <!-- Section: Shop (Game Items) -->
         <div id="shopSection" class="content-section">
+            
+            <!-- GAME TOP UP Title with Interactive Underline Button -->
+            <div class="statement-toggle-line" onclick="toggleStatementModal()">
+                <div style="font-weight:bold; font-size:16px; letter-spacing:1px; color:var(--primary-blue);">
+                    🎮 GAME TOP UP
+                </div>
+                <div style="font-size:11px; color:var(--text-gray); margin-top:2px;">
+                    (📊 သုံးစွဲမှုနှင့် ငွေဝင်ထွက်စာရင်းကြည့်ရန် နှိပ်ပါ)
+                </div>
+            </div>
+
+            <!-- Game Option Tabs (PUBG / MLBB Only Initially) -->
             <div class="game-tabs">
                 <div class="tab-btn active" id="tabMlbb" onclick="switchGame('mlbb')">Mobile Legends</div>
                 <div class="tab-btn" id="tabPubg" onclick="switchGame('pubg')">PUBG Mobile</div>
@@ -356,6 +347,15 @@
                 <div class="item-grid" id="pubgItems"></div>
                 <button class="btn" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitPubgOrder()">UC ဝယ်မည်</button>
             </div>
+        </div>
+
+        <!-- Statement / Statement Records View Section -->
+        <div id="statementSection" class="content-section hidden">
+            <div style="cursor:pointer; margin-bottom:15px; display:inline-flex; align-items:center; gap:5px; color:var(--primary-blue);" onclick="showNavSection('shopSection', 'navShop')">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> ပင်မဆိုင်သို့ ပြန်သွားမည်
+            </div>
+            <h3 style="margin-bottom:15px; color:var(--primary-blue);">📊 ငွေဝင်/ငွေထွက် စာရင်းမှတ်တမ်း</h3>
+            <div id="statementList"></div>
         </div>
 
         <!-- Section: Deposit -->
@@ -417,9 +417,22 @@
                 <p>လက်ကျန်ငွေ: <b id="profBalance">0</b> MMK</p>
                 <hr style="border-color:var(--border-color); margin:15px 0;">
                 <h4>Password ပြောင်းရန်</h4>
-                <input type="password" id="oldPass" placeholder="ယခင် Password" style="width:100%; padding:8px; margin:5px 0; background:#0f172a; border:1px solid var(--border-color); color:white;">
-                <input type="password" id="newPass" placeholder="Password အသစ်" style="width:100%; padding:8px; margin:5px 0; background:#0f172a; border:1px solid var(--border-color); color:white;">
-                <button class="btn" style="margin-top:5px;" onclick="changePassword()">Password ပြောင်းမည်</button>
+                
+                <div class="password-wrapper" style="margin:5px 0;">
+                    <input type="password" id="oldPass" placeholder="ယခင် Password" style="width:100%; padding:8px; background:#0f172a; border:1px solid var(--border-color); color:white; border-radius:6px;">
+                    <span class="toggle-password" onclick="togglePasswordVisibility('oldPass', this)">
+                        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                    </span>
+                </div>
+
+                <div class="password-wrapper" style="margin:5px 0;">
+                    <input type="password" id="newPass" placeholder="Password အသစ်" style="width:100%; padding:8px; background:#0f172a; border:1px solid var(--border-color); color:white; border-radius:6px;">
+                    <span class="toggle-password" onclick="togglePasswordVisibility('newPass', this)">
+                        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                    </span>
+                </div>
+
+                <button class="btn" style="margin-top:10px;" onclick="changePassword()">Password ပြောင်းမည်</button>
                 <button class="btn" style="background:var(--accent-red); color:white; margin-top:15px;" onclick="handleLogout()">Log Out</button>
             </div>
         </div>
@@ -474,6 +487,21 @@
         { name: "660 UC", price: 44000 }, { name: "1800 UC", price: 109300 },
         { name: "3850 UC", price: 213500 }, { name: "8100 UC", price: 422500 }
     ];
+
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            btn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.17c0-1.66-1.34-3-3-3l-.17.02z"/></svg>`;
+        } else {
+            input.type = "password";
+            btn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`;
+        }
+    }
+
+    function toggleStatementModal() {
+        showSection('statementSection');
+    }
 
     function updateFileName(input) {
         const txt = document.getElementById('fileNameText');
@@ -639,13 +667,15 @@
     }
 
     function updateProfileDisplay() {
+        const balStr = currentUser.balance.toLocaleString() + " MMK";
         document.getElementById('profUsId').innerText = currentUser.usId;
         document.getElementById('profGmail').innerText = currentUser.gmail;
         document.getElementById('profBalance').innerText = currentUser.balance.toLocaleString();
+        document.getElementById('topHeaderBalance').innerText = balStr;
     }
 
     function showSection(id) {
-        ['shopSection', 'depositSection', 'orderSection', 'historySection', 'profileSection'].forEach(s => {
+        ['shopSection', 'depositSection', 'orderSection', 'historySection', 'profileSection', 'statementSection'].forEach(s => {
             document.getElementById(s).classList.add('hidden');
         });
         document.getElementById(id).classList.remove('hidden');
@@ -690,7 +720,7 @@
         selectedPayType = type;
         document.getElementById('payDetails').classList.remove('hidden');
         if (type === 'wave') {
-            document.getElementById('payName').innerText = "Sun Sun Cho";
+            document.getElementById('payName').innerText = "San San Cho"; // Name updated to match Kpay
             document.getElementById('payPhone').innerText = "09668639746";
         } else {
             document.getElementById('payName').innerText = "San San Cho";
@@ -734,14 +764,21 @@
     }
 
     async function submitMlbbOrder() {
-        if (!selectedMlbbItem) return showAlert("Diamond ထုပ် ရွေးချယ်ပါ!", 'error');
         const gameId = document.getElementById('mlbbId').value.trim();
         const serverId = document.getElementById('mlbbServer').value.trim();
+
+        // Security Strict Rule: User ID / Server ID check
+        if (!gameId || gameId.length < 9 || gameId.length > 10 || !serverId || serverId.length < 4 || serverId.length > 5) {
+            return showAlert("ကျေးဇူးပြု၍ တရားဝင် User ID (9-10 လုံး) နှင့် Zone ID (4-5 လုံး) မှန်ကန်စွာ ဖြည့်စွက်ပါ!", 'error');
+        }
+
+        if (!selectedMlbbItem) return showAlert("Diamond ထုပ် ရွေးချယ်ပါ!", 'error');
 
         if (currentUser.balance < selectedMlbbItem.price) return showAlert("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပါ။", 'error');
 
         const orderId = `ordi${Math.floor(1000 + Math.random() * 9000)}`;
         const userKey = currentUser.gmail.replace(/\./g, '_');
+        const time = new Date().toLocaleString();
         
         // ဘာမှမလုပ်မီ ငွေကြိုနှုတ်ထားခြင်း
         const newBalance = currentUser.balance - selectedMlbbItem.price;
@@ -753,7 +790,7 @@
 
         await sendTelegramOrder(msg, `game|app|${orderId}`, `game|rej|${orderId}|${userKey}|${selectedMlbbItem.price}`);
 
-        const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'mlbb', item: selectedMlbbItem.name, price: selectedMlbbItem.price, gameId, serverId, status: 'pending' };
+        const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'mlbb', item: selectedMlbbItem.name, price: selectedMlbbItem.price, gameId, serverId, status: 'pending', time };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
 
         showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်ဂိမ်းအကောင့်ထဲသို့ diamond ဖြည့်ပေးပါမည်။", 'success');
@@ -761,13 +798,20 @@
     }
 
     async function submitPubgOrder() {
-        if (!selectedPubgItem) return showAlert("UC ထုပ် ရွေးချယ်ပါ!", 'error');
         const gameId = document.getElementById('pubgId').value.trim();
+
+        // Security Strict Rule: PUBG ID check
+        if (!gameId || gameId.length < 7) {
+            return showAlert("ကျေးဇူးပြု၍ တရားဝင် PUBG Player ID မှန်ကန်စွာ ဖြည့်စွက်ပါ!", 'error');
+        }
+
+        if (!selectedPubgItem) return showAlert("UC ထုပ် ရွေးချယ်ပါ!", 'error');
 
         if (currentUser.balance < selectedPubgItem.price) return showAlert("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပါ။", 'error');
 
         const orderId = `ordp${Math.floor(1000 + Math.random() * 9000)}`;
         const userKey = currentUser.gmail.replace(/\./g, '_');
+        const time = new Date().toLocaleString();
 
         // ဘာမှမလုပ်မီ ငွေကြိုနှုတ်ထားခြင်း
         const newBalance = currentUser.balance - selectedPubgItem.price;
@@ -779,7 +823,7 @@
 
         await sendTelegramOrder(msg, `game|app|${orderId}`, `game|rej|${orderId}|${userKey}|${selectedPubgItem.price}`);
 
-        const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'pubg', item: selectedPubgItem.name, price: selectedPubgItem.price, gameId, status: 'pending' };
+        const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'pubg', item: selectedPubgItem.name, price: selectedPubgItem.price, gameId, status: 'pending', time };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
 
         showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်အကောင့်အား UC ဖြည့်သွင်းပေးပါမည်။", 'success');
@@ -954,11 +998,16 @@
         if (!data) return;
         const activeList = document.getElementById('activeOrdersList');
         const historyList = document.getElementById('historyList');
+        const statementList = document.getElementById('statementList');
 
         let activeHtml = "";
         let historyHtml = "";
+        let statementHtml = "";
 
-        Object.values(data).filter(o => o.gmail === currentUser.gmail).reverse().forEach(o => {
+        const myOrders = Object.values(data).filter(o => o.gmail === currentUser.gmail).reverse();
+
+        myOrders.forEach(o => {
+            // ၁။ Active Orders View
             if (o.status === 'pending') {
                 activeHtml += `
                     <div class="history-card">
@@ -968,6 +1017,7 @@
                     </div>
                 `;
             } else {
+                // 2. Order History View
                 const isApproved = o.status === 'approved';
                 historyHtml += `
                     <div class="history-card ${isApproved ? 'approved' : 'rejected'}">
@@ -976,10 +1026,46 @@
                     </div>
                 `;
             }
+
+            // ၃။ Financial Statement / Transaction Log View
+            if (o.type === 'deposit' && o.status === 'approved') {
+                statementHtml += `
+                    <div class="statement-card income">
+                        <div>
+                            <div style="font-weight:bold; color:var(--accent-green);">+${o.amount.toLocaleString()} MMK</div>
+                            <div style="font-size:12px; color:var(--text-gray);">ငွေဖြည့်သွင်းခြင်း အောင်မြင်မှု</div>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-gray); text-align:right;">${o.time || 'အတည်ပြုပြီး'}</div>
+                    </div>
+                `;
+            } else if (o.type !== 'deposit') {
+                if (o.status === 'rejected') {
+                    statementHtml += `
+                        <div class="statement-card income">
+                            <div>
+                                <div style="font-weight:bold; color:var(--accent-green);">+${o.price.toLocaleString()} MMK</div>
+                                <div style="font-size:12px; color:var(--text-gray);">${o.type.toUpperCase()} - အော်ဒါပယ်ဖျက်၍ ငွေပြန်အမ်းခြင်း</div>
+                            </div>
+                            <div style="font-size:11px; color:var(--text-gray); text-align:right;">${o.orderId}</div>
+                        </div>
+                    `;
+                } else {
+                    statementHtml += `
+                        <div class="statement-card expense">
+                            <div>
+                                <div style="font-weight:bold; color:var(--accent-red);">-${o.price.toLocaleString()} MMK</div>
+                                <div style="font-size:12px; color:var(--text-gray);">${o.type.toUpperCase()} - ${o.item} ဝယ်ယူမှု</div>
+                            </div>
+                            <div style="font-size:11px; color:var(--text-gray); text-align:right;">${o.orderId}</div>
+                        </div>
+                    `;
+                }
+            }
         });
 
         activeList.innerHTML = activeHtml || "လက်ရှိ အော်ဒါ မရှိပါ။";
         historyList.innerHTML = historyHtml || "မှတ်တမ်း မရှိပါ။";
+        statementList.innerHTML = statementHtml || "ငွေဝင်ငွေထွက် မှတ်တမ်း မရှိသေးပါ။";
     }
 
     async function changePassword() {
