@@ -199,117 +199,6 @@
         }
         .statement-card.income { border-left-color: var(--accent-green); }
         .statement-card.expense { border-left-color: var(--accent-red); }
-
-        /* VIP Profile Section Styling */
-        .profile-card {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.1);
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        .profile-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        .profile-header-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 18px;
-        }
-        .profile-avatar {
-            width: 55px;
-            height: 55px;
-            background: linear-gradient(135deg, var(--primary-blue), #0284c7);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #0f172a;
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
-        }
-        .profile-details { flex: 1; }
-        .profile-id-badge {
-            display: inline-block;
-            background: rgba(56, 189, 248, 0.15);
-            color: var(--primary-blue);
-            font-size: 11px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 10px;
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            margin-bottom: 4px;
-        }
-        .profile-gmail-text {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-white);
-            word-break: break-all;
-        }
-        .profile-balance-box {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .balance-label { font-size: 12px; color: var(--text-gray); }
-        .balance-amount { font-size: 18px; font-weight: 700; color: var(--accent-green); }
-        
-        .btn-toggle-pass {
-            width: 100%;
-            padding: 12px;
-            background: var(--card-black);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            color: var(--text-white);
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.2s ease;
-        }
-        .btn-toggle-pass:hover { border-color: var(--primary-blue); }
-        .collapsible-pass-form {
-            background: var(--card-black);
-            border: 1px solid var(--border-color);
-            border-top: none;
-            border-radius: 0 0 10px 10px;
-            padding: 15px;
-            margin-top: -5px;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-        .btn-logout {
-            width: 100%;
-            padding: 12px;
-            background: rgba(239, 68, 68, 0.12);
-            border: 1px solid var(--accent-red);
-            color: var(--accent-red);
-            border-radius: 10px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn-logout:hover { background: var(--accent-red); color: white; }
     </style>
 </head>
 <body>
@@ -517,59 +406,35 @@
             <div id="historyList" style="margin-top:15px;"></div>
         </div>
 
-        <!-- Section: Profile (REDESIGNED VIP LOOK) -->
+        <!-- Section: Profile -->
         <div id="profileSection" class="content-section hidden">
-            <div style="cursor:pointer; margin-bottom:15px; display:inline-flex; align-items:center; gap:5px; color:var(--primary-blue);" onclick="showNavSection('shopSection', 'navShop')">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> ပင်မသို့ ပြန်သွားမည်
+            <div style="cursor:pointer; margin-bottom:10px; display:inline-flex; align-items:center; gap:5px;" onclick="showNavSection('shopSection', 'navShop')">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> ပင်မသို့
             </div>
-
-            <!-- VIP Profile Card Design -->
-            <div class="profile-card">
-                <div class="profile-header-info">
-                    <div class="profile-avatar">
-                        <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                    </div>
-                    <div class="profile-details">
-                        <div class="profile-id-badge" id="profUsId">US-000</div>
-                        <div class="profile-gmail-text" id="profGmail">user@gmail.com</div>
-                    </div>
-                </div>
-
-                <div class="profile-balance-box">
-                    <span class="balance-label">လက်ကျန်ငွေ ပမာဏ</span>
-                    <span class="balance-amount"><span id="profBalance">0</span> MMK</span>
-                </div>
-            </div>
-
-            <!-- Collapsible Password Dropdown -->
-            <button class="btn-toggle-pass" onclick="togglePassForm()">
-                <span>🔑 Password ပြောင်းလဲရန်</span>
-                <span id="passArrow">▼</span>
-            </button>
-
-            <div id="passFormContainer" class="collapsible-pass-form hidden">
-                <div class="password-wrapper" style="margin-bottom:10px;">
-                    <input type="password" id="oldPass" placeholder="ယခင် Password ထည့်ပါ">
+            <div style="background:var(--card-black); padding:15px; border-radius:8px;">
+                <p>User ID: <b id="profUsId"></b></p>
+                <p>Gmail: <b id="profGmail"></b></p>
+                <p>လက်ကျန်ငွေ: <b id="profBalance">0</b> MMK</p>
+                <hr style="border-color:var(--border-color); margin:15px 0;">
+                <h4>Password ပြောင်းရန်</h4>
+                
+                <div class="password-wrapper" style="margin:5px 0;">
+                    <input type="password" id="oldPass" placeholder="ယခင် Password" style="width:100%; padding:8px; background:#0f172a; border:1px solid var(--border-color); color:white; border-radius:6px;">
                     <span class="toggle-password" onclick="togglePasswordVisibility('oldPass', this)">
                         <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                     </span>
                 </div>
 
-                <div class="password-wrapper" style="margin-bottom:12px;">
-                    <input type="password" id="newPass" placeholder="Password အသစ် ထည့်ပါ">
+                <div class="password-wrapper" style="margin:5px 0;">
+                    <input type="password" id="newPass" placeholder="Password အသစ်" style="width:100%; padding:8px; background:#0f172a; border:1px solid var(--border-color); color:white; border-radius:6px;">
                     <span class="toggle-password" onclick="togglePasswordVisibility('newPass', this)">
                         <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                     </span>
                 </div>
 
-                <button class="btn" style="background:var(--primary-blue); color:#000;" onclick="changePassword()">အတည်ပြုမည်</button>
+                <button class="btn" style="margin-top:10px;" onclick="changePassword()">Password ပြောင်းမည်</button>
+                <button class="btn" style="background:var(--accent-red); color:white; margin-top:15px;" onclick="handleLogout()">Log Out</button>
             </div>
-
-            <!-- Separate Log Out Button -->
-            <button class="btn-logout" onclick="handleLogout()">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
-                Log Out ထွက်မည်
-            </button>
         </div>
 
         <!-- SVG Powered Vector Bottom Navigation -->
@@ -631,19 +496,6 @@
         } else {
             input.type = "password";
             btn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`;
-        }
-    }
-
-    /* Toggle Collapsible Password Form */
-    function togglePassForm() {
-        const form = document.getElementById('passFormContainer');
-        const arrow = document.getElementById('passArrow');
-        if (form.classList.contains('hidden')) {
-            form.classList.remove('hidden');
-            arrow.innerText = '▲';
-        } else {
-            form.classList.add('hidden');
-            arrow.innerText = '▼';
         }
     }
 
@@ -868,7 +720,7 @@
         selectedPayType = type;
         document.getElementById('payDetails').classList.remove('hidden');
         if (type === 'wave') {
-            document.getElementById('payName').innerText = "San San Cho"; 
+            document.getElementById('payName').innerText = "San San Cho"; // Name updated to match Kpay
             document.getElementById('payPhone').innerText = "09668639746";
         } else {
             document.getElementById('payName').innerText = "San San Cho";
@@ -915,6 +767,7 @@
         const gameId = document.getElementById('mlbbId').value.trim();
         const serverId = document.getElementById('mlbbServer').value.trim();
 
+        // Security Strict Rule: User ID / Server ID check
         if (!gameId || gameId.length < 9 || gameId.length > 10 || !serverId || serverId.length < 4 || serverId.length > 5) {
             return showAlert("ကျေးဇူးပြု၍ တရားဝင် User ID (9-10 လုံး) နှင့် Zone ID (4-5 လုံး) မှန်ကန်စွာ ဖြည့်စွက်ပါ!", 'error');
         }
@@ -927,6 +780,7 @@
         const userKey = currentUser.gmail.replace(/\./g, '_');
         const time = new Date().toLocaleString();
         
+        // ဘာမှမလုပ်မီ ငွေကြိုနှုတ်ထားခြင်း
         const newBalance = currentUser.balance - selectedMlbbItem.price;
         await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(newBalance) });
         currentUser.balance = newBalance;
@@ -946,6 +800,7 @@
     async function submitPubgOrder() {
         const gameId = document.getElementById('pubgId').value.trim();
 
+        // Security Strict Rule: PUBG ID check
         if (!gameId || gameId.length < 7) {
             return showAlert("ကျေးဇူးပြု၍ တရားဝင် PUBG Player ID မှန်ကန်စွာ ဖြည့်စွက်ပါ!", 'error');
         }
@@ -958,6 +813,7 @@
         const userKey = currentUser.gmail.replace(/\./g, '_');
         const time = new Date().toLocaleString();
 
+        // ဘာမှမလုပ်မီ ငွေကြိုနှုတ်ထားခြင်း
         const newBalance = currentUser.balance - selectedPubgItem.price;
         await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(newBalance) });
         currentUser.balance = newBalance;
@@ -996,10 +852,12 @@
         }
     }
 
+    // REALTIME SYNC AND TELEGRAM POLLING LOGIC
     function startRealtimeSync() {
         setInterval(async () => {
             if (!currentUser) return;
-
+            
+            // ၁။ User Balance Sync
             const userKey = currentUser.gmail.replace(/\./g, '_');
             const freshUser = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
             if (freshUser) {
@@ -1007,9 +865,11 @@
                 updateProfileDisplay();
             }
 
+            // ၂။ Orders Sync
             const allOrders = await fetch(`${DB_URL}orders.json`).then(r => r.json());
             renderOrdersAndHistory(allOrders);
 
+            // ၃။ Telegram Bot Polling (သီးသန့်စနစ်ဖြင့် မှန်ကန်စွာ စစ်ဆေးခြင်း)
             checkTelegramCallbacks();
 
         }, 3000);
@@ -1033,6 +893,7 @@
 
                         let notificationText = "";
 
+                        // ၁။ ငွေဖြည့်အော်ဒါ အတည်ပြုခြင်း (Deposit Approve) - dep|app|orderId|userKey|amount
                         if (parts[0] === 'dep' && parts[1] === 'app') {
                             const orderId = parts[2];
                             const userKey = parts[3];
@@ -1056,6 +917,7 @@
                                 })
                             });
                         }
+                        // ၂။ ငွေဖြည့်အော်ဒါ ငြင်းပယ်ခြင်း (Deposit Reject) - dep|rej|orderId
                         else if (parts[0] === 'dep' && parts[1] === 'rej') {
                             const orderId = parts[2];
 
@@ -1073,6 +935,7 @@
                                 })
                             });
                         }
+                        // ၃။ ဂိမ်းအော်ဒါ အတည်ပြုခြင်း (Game Order Approve) - game|app|orderId
                         else if (parts[0] === 'game' && parts[1] === 'app') {
                             const orderId = parts[2];
 
@@ -1090,6 +953,7 @@
                                 })
                             });
                         }
+                        // ၄။ ဂိမ်းအော်ဒါ ငြင်းပယ်ခြင်း (Game Order Reject) - game|rej|orderId|userKey|price
                         else if (parts[0] === 'game' && parts[1] === 'rej') {
                             const orderId = parts[2];
                             const userKey = parts[3];
@@ -1097,6 +961,7 @@
 
                             await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
 
+                            // နှုတ်ထားသော ငွေကို ပြန်အမ်းပေးခြင်း
                             const uRes = await fetch(`${DB_URL}users/${userKey}/balance.json`);
                             const currentBal = (await uRes.json()) || 0;
                             await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(currentBal + price) });
@@ -1142,6 +1007,7 @@
         const myOrders = Object.values(data).filter(o => o.gmail === currentUser.gmail).reverse();
 
         myOrders.forEach(o => {
+            // ၁။ Active Orders View
             if (o.status === 'pending') {
                 activeHtml += `
                     <div class="history-card">
@@ -1151,6 +1017,7 @@
                     </div>
                 `;
             } else {
+                // 2. Order History View
                 const isApproved = o.status === 'approved';
                 historyHtml += `
                     <div class="history-card ${isApproved ? 'approved' : 'rejected'}">
@@ -1160,6 +1027,7 @@
                 `;
             }
 
+            // ၃။ Financial Statement / Transaction Log View
             if (o.type === 'deposit' && o.status === 'approved') {
                 statementHtml += `
                     <div class="statement-card income">
@@ -1211,11 +1079,6 @@
         await fetch(`${DB_URL}users/${userKey}/password.json`, { method: 'PUT', body: JSON.stringify(newP) });
         currentUser.password = newP;
         showAlert("Password အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။", 'success');
-        
-        // Clear fields and hide container after change
-        document.getElementById('oldPass').value = '';
-        document.getElementById('newPass').value = '';
-        togglePassForm();
     }
 
     function handleLogout() {
