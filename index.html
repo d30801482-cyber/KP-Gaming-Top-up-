@@ -46,6 +46,7 @@
 
         .btn { width: 100%; padding: 12px; background: var(--primary-blue); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .auth-toggle { text-align: center; margin-top: 15px; font-size: 13px; color: var(--text-gray); }
         .auth-toggle span { color: var(--primary-blue); cursor: pointer; text-decoration: underline; }
 
@@ -123,7 +124,7 @@
         .item-card { 
             background: var(--card-black); 
             border: 1px solid var(--border-color); 
-            border-bottom: 4px solid var(--accent-red); /* 기본 Red Bottom Border */
+            border-bottom: 4px solid var(--accent-red);
             border-radius: 8px; 
             padding: 12px; 
             text-align: center; 
@@ -133,7 +134,7 @@
         }
         .item-card.selected { 
             border-color: var(--accent-green); 
-            border-bottom: 4px solid var(--accent-green); /* Selected Green Bottom Border */
+            border-bottom: 4px solid var(--accent-green);
             background: #064e3b; 
         }
 
@@ -199,6 +200,117 @@
         }
         .statement-card.income { border-left-color: var(--accent-green); }
         .statement-card.expense { border-left-color: var(--accent-red); }
+
+        /* VIP Profile Section Styling */
+        .profile-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .profile-header-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+        .profile-avatar {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, var(--primary-blue), #0284c7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0f172a;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+        .profile-details { flex: 1; }
+        .profile-id-badge {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--primary-blue);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            margin-bottom: 4px;
+        }
+        .profile-gmail-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-white);
+            word-break: break-all;
+        }
+        .profile-balance-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .balance-label { font-size: 12px; color: var(--text-gray); }
+        .balance-amount { font-size: 18px; font-weight: 700; color: var(--accent-green); }
+        
+        .btn-toggle-pass {
+            width: 100%;
+            padding: 12px;
+            background: var(--card-black);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-white);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+        .btn-toggle-pass:hover { border-color: var(--primary-blue); }
+        .collapsible-pass-form {
+            background: var(--card-black);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            padding: 15px;
+            margin-top: -5px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .btn-logout {
+            width: 100%;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-logout:hover { background: var(--accent-red); color: white; }
     </style>
 </head>
 <body>
@@ -263,7 +375,7 @@
                 </span>
             </div>
         </div>
-        <button class="btn" onclick="handleRegister()">အတည်ပြုမည်</button>
+        <button class="btn" id="btnRegister" onclick="handleRegister()">အတည်ပြုမည်</button>
         <div class="auth-toggle">
             အကောင့်ရှိပြီးသားလား? <span onclick="switchAuth('login')">Login ဝင်မည်</span>
         </div>
@@ -285,7 +397,7 @@
                 </span>
             </div>
         </div>
-        <button class="btn" onclick="handleLogin()">အတည်ပြုမည်</button>
+        <button class="btn" id="btnLogin" onclick="handleLogin()">အတည်ပြုမည်</button>
         <div class="auth-toggle" style="margin-top: 10px;">
             <span onclick="forgotPassword()">Password မေ့နေသည်</span>
         </div>
@@ -338,14 +450,14 @@
                     <input type="text" id="mlbbServer" placeholder="Zone ID (4-5 လုံး)" style="flex:1; padding:10px; background:var(--card-black); border:1px solid var(--border-color); color:white; border-radius:6px;" oninput="validateMlbb()">
                 </div>
                 <div class="item-grid" id="mlbbItems"></div>
-                <button class="btn" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitMlbbOrder()">Diamond ဖြည့်မည်</button>
+                <button class="btn" id="btnSubmitMlbb" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitMlbbOrder()">Diamond ဖြည့်မည်</button>
             </div>
 
             <!-- PUBG Form -->
             <div id="pubgForm" class="hidden">
                 <input type="text" id="pubgId" placeholder="PUBG Player ID" style="width:100%; padding:10px; margin-bottom:15px; background:var(--card-black); border:1px solid var(--border-color); color:white; border-radius:6px;" oninput="validatePubg()">
                 <div class="item-grid" id="pubgItems"></div>
-                <button class="btn" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitPubgOrder()">UC ဝယ်မည်</button>
+                <button class="btn" id="btnSubmitPubg" style="margin-top:15px; background:var(--accent-green); color:white;" onclick="submitPubgOrder()">UC ဝယ်မည်</button>
             </div>
         </div>
 
@@ -388,7 +500,7 @@
                 <label>လုပ်ငန်းစဉ်နံပါတ် နောက်ဆုံး ၅ လုံး</label>
                 <input type="text" id="depLastDigits" maxlength="5" placeholder="12345">
             </div>
-            <button class="btn" style="background:var(--accent-green); color:white;" onclick="submitDeposit()">အတည်ပြုမည်</button>
+            <button class="btn" id="btnSubmitDep" style="background:var(--accent-green); color:white;" onclick="submitDeposit()">အတည်ပြုမည်</button>
         </div>
 
         <!-- Section: Orders (Active Running Orders) -->
@@ -406,35 +518,59 @@
             <div id="historyList" style="margin-top:15px;"></div>
         </div>
 
-        <!-- Section: Profile -->
+        <!-- Section: Profile (REDESIGNED VIP LOOK) -->
         <div id="profileSection" class="content-section hidden">
-            <div style="cursor:pointer; margin-bottom:10px; display:inline-flex; align-items:center; gap:5px;" onclick="showNavSection('shopSection', 'navShop')">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> ပင်မသို့
+            <div style="cursor:pointer; margin-bottom:15px; display:inline-flex; align-items:center; gap:5px; color:var(--primary-blue);" onclick="showNavSection('shopSection', 'navShop')">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg> ပင်မသို့ ပြန်သွားမည်
             </div>
-            <div style="background:var(--card-black); padding:15px; border-radius:8px;">
-                <p>User ID: <b id="profUsId"></b></p>
-                <p>Gmail: <b id="profGmail"></b></p>
-                <p>လက်ကျန်ငွေ: <b id="profBalance">0</b> MMK</p>
-                <hr style="border-color:var(--border-color); margin:15px 0;">
-                <h4>Password ပြောင်းရန်</h4>
-                
-                <div class="password-wrapper" style="margin:5px 0;">
-                    <input type="password" id="oldPass" placeholder="ယခင် Password" style="width:100%; padding:8px; background:#0f172a; border:1px solid var(--border-color); color:white; border-radius:6px;">
+
+            <!-- VIP Profile Card Design -->
+            <div class="profile-card">
+                <div class="profile-header-info">
+                    <div class="profile-avatar">
+                        <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <div class="profile-details">
+                        <div class="profile-id-badge" id="profUsId">US-000</div>
+                        <div class="profile-gmail-text" id="profGmail">user@gmail.com</div>
+                    </div>
+                </div>
+
+                <div class="profile-balance-box">
+                    <span class="balance-label">လက်ကျန်ငွေ ပမာဏ</span>
+                    <span class="balance-amount"><span id="profBalance">0</span> MMK</span>
+                </div>
+            </div>
+
+            <!-- Collapsible Password Dropdown -->
+            <button class="btn-toggle-pass" onclick="togglePassForm()">
+                <span>🔑 Password ပြောင်းလဲရန်</span>
+                <span id="passArrow">▼</span>
+            </button>
+
+            <div id="passFormContainer" class="collapsible-pass-form hidden">
+                <div class="password-wrapper" style="margin-bottom:10px;">
+                    <input type="password" id="oldPass" placeholder="ယခင် Password ထည့်ပါ">
                     <span class="toggle-password" onclick="togglePasswordVisibility('oldPass', this)">
                         <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                     </span>
                 </div>
 
-                <div class="password-wrapper" style="margin:5px 0;">
-                    <input type="password" id="newPass" placeholder="Password အသစ်" style="width:100%; padding:8px; background:#0f172a; border:1px solid var(--border-color); color:white; border-radius:6px;">
+                <div class="password-wrapper" style="margin-bottom:12px;">
+                    <input type="password" id="newPass" placeholder="Password အသစ် ထည့်ပါ">
                     <span class="toggle-password" onclick="togglePasswordVisibility('newPass', this)">
                         <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                     </span>
                 </div>
 
-                <button class="btn" style="margin-top:10px;" onclick="changePassword()">Password ပြောင်းမည်</button>
-                <button class="btn" style="background:var(--accent-red); color:white; margin-top:15px;" onclick="handleLogout()">Log Out</button>
+                <button class="btn" style="background:var(--primary-blue); color:#000;" onclick="changePassword()">အတည်ပြုမည်</button>
             </div>
+
+            <!-- Separate Log Out Button -->
+            <button class="btn-logout" onclick="handleLogout()">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                Log Out ထွက်မည်
+            </button>
         </div>
 
         <!-- SVG Powered Vector Bottom Navigation -->
@@ -469,7 +605,8 @@
     let selectedMlbbItem = null;
     let selectedPubgItem = null;
     let selectedPayType = null;
-    let lastTelegramUpdateId = 0; // Telegram polling tracker
+    let syncTimer = null;
+    let isSyncing = false;
 
     const mlbbPricing = [
         { name: "Weekly Pass", price: 6900 }, { name: "💎86", price: 5700 },
@@ -496,6 +633,18 @@
         } else {
             input.type = "password";
             btn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`;
+        }
+    }
+
+    function togglePassForm() {
+        const form = document.getElementById('passFormContainer');
+        const arrow = document.getElementById('passArrow');
+        if (form.classList.contains('hidden')) {
+            form.classList.remove('hidden');
+            arrow.innerText = '▲';
+        } else {
+            form.classList.add('hidden');
+            arrow.innerText = '▼';
         }
     }
 
@@ -559,6 +708,7 @@
     function validatePassword(pass) { return /^(?=.*[A-Z])(?=.*\d)[^-_:;!]{6,}$/.test(pass); }
 
     async function handleRegister() {
+        const btn = document.getElementById('btnRegister');
         const gmail = document.getElementById('regGmail').value.trim().toLowerCase();
         const pass = document.getElementById('regPass').value.trim();
 
@@ -568,11 +718,13 @@
         const userKey = gmail.replace(/\./g, '_');
         
         try {
+            btn.disabled = true;
             showAlert("ခဏစောင့်ပါ...", 'info');
             const res = await fetch(`${DB_URL}users/${userKey}.json`);
             const check = await res.json();
             
             if (check && check.password) {
+                btn.disabled = false;
                 return showAlert("ဤ Gmail ဖြင့် အကောင့်ဖွင့်ထားပြီးသား ဖြစ်ပါသည်။ Login ဝင်ပါ။", 'error');
             }
 
@@ -603,11 +755,14 @@
             showAlert("အကောင့်သစ် အောင်မြင်စွာ ဖွင့်ပြီးပါပြီ!", 'success');
         } catch (err) {
             console.error(err);
-            showAlert("ဒေတာချိတ်ဆက်မှု မရရှိပါ။ Firebase Rules ကို စစ်ဆေးပါ", 'error');
+            showAlert("ဒေတာချိတ်ဆက်မှု မရရှိပါ။ အင်တာနက် သို့မဟုတ် Firebase Rules စစ်ဆေးပါ။", 'error');
+        } finally {
+            btn.disabled = false;
         }
     }
 
     async function handleLogin() {
+        const btn = document.getElementById('btnLogin');
         const gmail = document.getElementById('loginGmail').value.trim().toLowerCase();
         const pass = document.getElementById('loginPass').value.trim();
 
@@ -616,6 +771,7 @@
         const userKey = gmail.replace(/\./g, '_');
         
         try {
+            btn.disabled = true;
             showAlert("ခဏစောင့်ပါ...", 'info');
             const res = await fetch(`${DB_URL}users/${userKey}.json`);
             const userData = await res.json();
@@ -631,6 +787,8 @@
         } catch (err) {
             console.error(err);
             showAlert("အကောင့်ဝင်၍ မရသေးပါ။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပါ။", 'error');
+        } finally {
+            btn.disabled = false;
         }
     }
 
@@ -638,12 +796,15 @@
         const gmail = localStorage.getItem('kp_user_gmail');
         if (gmail) {
             const userKey = gmail.replace(/\./g, '_');
-            fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json()).then(userData => {
-                if (userData) {
-                    currentUser = userData;
-                    initAppView();
-                }
-            });
+            fetch(`${DB_URL}users/${userKey}.json`)
+                .then(r => r.json())
+                .then(userData => {
+                    if (userData) {
+                        currentUser = userData;
+                        initAppView();
+                    }
+                })
+                .catch(err => console.error("Auto Login Error:", err));
         }
     }
 
@@ -667,10 +828,12 @@
     }
 
     function updateProfileDisplay() {
-        const balStr = currentUser.balance.toLocaleString() + " MMK";
-        document.getElementById('profUsId').innerText = currentUser.usId;
-        document.getElementById('profGmail').innerText = currentUser.gmail;
-        document.getElementById('profBalance').innerText = currentUser.balance.toLocaleString();
+        if(!currentUser) return;
+        const balance = typeof currentUser.balance === 'number' ? currentUser.balance : 0;
+        const balStr = balance.toLocaleString() + " MMK";
+        document.getElementById('profUsId').innerText = currentUser.usId || "US-000";
+        document.getElementById('profGmail').innerText = currentUser.gmail || "";
+        document.getElementById('profBalance').innerText = balance.toLocaleString();
         document.getElementById('topHeaderBalance').innerText = balStr;
     }
 
@@ -720,7 +883,7 @@
         selectedPayType = type;
         document.getElementById('payDetails').classList.remove('hidden');
         if (type === 'wave') {
-            document.getElementById('payName').innerText = "San San Cho"; // Name updated to match Kpay
+            document.getElementById('payName').innerText = "San San Cho"; 
             document.getElementById('payPhone').innerText = "09668639746";
         } else {
             document.getElementById('payName').innerText = "San San Cho";
@@ -729,12 +892,14 @@
     }
 
     async function submitDeposit() {
+        const btn = document.getElementById('btnSubmitDep');
         const amount = parseFloat(document.getElementById('depAmount').value);
         const proofFile = document.getElementById('depProof').files[0];
         const lastDigits = document.getElementById('depLastDigits').value.trim();
 
         if (!selectedPayType || !amount || !lastDigits || !proofFile) return showAlert("အချက်အလက်များ ပြည့်စုံစွာ ဖြည့်ပါ။", 'error');
 
+        btn.disabled = true;
         const orderId = `orkp${Math.floor(1000 + Math.random() * 9000)}`;
         const time = new Date().toLocaleString();
         const userKey = currentUser.gmail.replace(/\./g, '_');
@@ -753,21 +918,22 @@
         try {
             await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
         } catch (e) {
-            console.error(e);
+            console.error("Telegram Error:", e);
         }
 
         const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'deposit', amount, status: 'pending', time };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
 
+        btn.disabled = false;
         showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်အကောင့်သို့ ငွေဖြည့်ပေးပါမည်။", 'success');
         showNavSection('orderSection', 'navOrder');
     }
 
     async function submitMlbbOrder() {
+        const btn = document.getElementById('btnSubmitMlbb');
         const gameId = document.getElementById('mlbbId').value.trim();
         const serverId = document.getElementById('mlbbServer').value.trim();
 
-        // Security Strict Rule: User ID / Server ID check
         if (!gameId || gameId.length < 9 || gameId.length > 10 || !serverId || serverId.length < 4 || serverId.length > 5) {
             return showAlert("ကျေးဇူးပြု၍ တရားဝင် User ID (9-10 လုံး) နှင့် Zone ID (4-5 လုံး) မှန်ကန်စွာ ဖြည့်စွက်ပါ!", 'error');
         }
@@ -776,11 +942,11 @@
 
         if (currentUser.balance < selectedMlbbItem.price) return showAlert("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပါ။", 'error');
 
+        btn.disabled = true;
         const orderId = `ordi${Math.floor(1000 + Math.random() * 9000)}`;
         const userKey = currentUser.gmail.replace(/\./g, '_');
         const time = new Date().toLocaleString();
         
-        // ဘာမှမလုပ်မီ ငွေကြိုနှုတ်ထားခြင်း
         const newBalance = currentUser.balance - selectedMlbbItem.price;
         await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(newBalance) });
         currentUser.balance = newBalance;
@@ -793,14 +959,15 @@
         const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'mlbb', item: selectedMlbbItem.name, price: selectedMlbbItem.price, gameId, serverId, status: 'pending', time };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
 
+        btn.disabled = false;
         showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်ဂိမ်းအကောင့်ထဲသို့ diamond ဖြည့်ပေးပါမည်။", 'success');
         showNavSection('orderSection', 'navOrder');
     }
 
     async function submitPubgOrder() {
+        const btn = document.getElementById('btnSubmitPubg');
         const gameId = document.getElementById('pubgId').value.trim();
 
-        // Security Strict Rule: PUBG ID check
         if (!gameId || gameId.length < 7) {
             return showAlert("ကျေးဇူးပြု၍ တရားဝင် PUBG Player ID မှန်ကန်စွာ ဖြည့်စွက်ပါ!", 'error');
         }
@@ -809,11 +976,11 @@
 
         if (currentUser.balance < selectedPubgItem.price) return showAlert("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပါ။", 'error');
 
+        btn.disabled = true;
         const orderId = `ordp${Math.floor(1000 + Math.random() * 9000)}`;
         const userKey = currentUser.gmail.replace(/\./g, '_');
         const time = new Date().toLocaleString();
 
-        // ဘာမှမလုပ်မီ ငွေကြိုနှုတ်ထားခြင်း
         const newBalance = currentUser.balance - selectedPubgItem.price;
         await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(newBalance) });
         currentUser.balance = newBalance;
@@ -826,6 +993,7 @@
         const txData = { orderId, usId: currentUser.usId, gmail: currentUser.gmail, type: 'pubg', item: selectedPubgItem.name, price: selectedPubgItem.price, gameId, status: 'pending', time };
         await fetch(`${DB_URL}orders/${orderId}.json`, { method: 'PUT', body: JSON.stringify(txData) });
 
+        btn.disabled = false;
         showAlert("Order တင်ခြင်း အောင်မြင်ပါသည်။ မကြာခင် သင့်အကောင့်အား UC ဖြည့်သွင်းပေးပါမည်။", 'success');
         showNavSection('orderSection', 'navOrder');
     }
@@ -848,166 +1016,54 @@
                 })
             });
         } catch (e) {
-            console.error(e);
+            console.error("Telegram Send Error:", e);
         }
     }
 
-    // REALTIME SYNC AND TELEGRAM POLLING LOGIC
     function startRealtimeSync() {
-        setInterval(async () => {
-            if (!currentUser) return;
-            
-            // ၁။ User Balance Sync
-            const userKey = currentUser.gmail.replace(/\./g, '_');
-            const freshUser = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
-            if (freshUser) {
-                currentUser = freshUser;
-                updateProfileDisplay();
+        if (syncTimer) clearInterval(syncTimer);
+        
+        syncTimer = setInterval(async () => {
+            if (!currentUser || isSyncing) return;
+            isSyncing = true;
+
+            try {
+                const userKey = currentUser.gmail.replace(/\./g, '_');
+                const freshUser = await fetch(`${DB_URL}users/${userKey}.json`).then(r => r.json());
+                if (freshUser) {
+                    currentUser = freshUser;
+                    updateProfileDisplay();
+                }
+
+                const allOrders = await fetch(`${DB_URL}orders.json`).then(r => r.json());
+                renderOrdersAndHistory(allOrders);
+            } catch (err) {
+                console.error("Sync error:", err);
+            } finally {
+                isSyncing = false;
             }
-
-            // ၂။ Orders Sync
-            const allOrders = await fetch(`${DB_URL}orders.json`).then(r => r.json());
-            renderOrdersAndHistory(allOrders);
-
-            // ၃။ Telegram Bot Polling (သီးသန့်စနစ်ဖြင့် မှန်ကန်စွာ စစ်ဆေးခြင်း)
-            checkTelegramCallbacks();
-
         }, 3000);
     }
 
-    async function checkTelegramCallbacks() {
-        try {
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastTelegramUpdateId + 1}`;
-            const res = await fetch(url).then(r => r.json());
-
-            if (res.ok && res.result.length > 0) {
-                for (const update of res.result) {
-                    lastTelegramUpdateId = update.update_id;
-
-                    if (update.callback_query) {
-                        const callback = update.callback_query;
-                        const data = callback.data; 
-                        const chatId = callback.message.chat.id;
-                        const messageId = callback.message.message_id;
-                        const parts = data.split('|');
-
-                        let notificationText = "";
-
-                        // ၁။ ငွေဖြည့်အော်ဒါ အတည်ပြုခြင်း (Deposit Approve) - dep|app|orderId|userKey|amount
-                        if (parts[0] === 'dep' && parts[1] === 'app') {
-                            const orderId = parts[2];
-                            const userKey = parts[3];
-                            const amount = parseFloat(parts[4]);
-
-                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
-                            
-                            const uRes = await fetch(`${DB_URL}users/${userKey}/balance.json`);
-                            const currentBal = (await uRes.json()) || 0;
-                            await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(currentBal + amount) });
-
-                            notificationText = "ငွေဖြည့်အော်ဒါကို အတည်ပြုပြီး လက်ကျန်ငွေ ပေါင်းထည့်ပေးလိုက်ပါပြီ!";
-
-                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    chat_id: chatId,
-                                    message_id: messageId,
-                                    reply_markup: { inline_keyboard: [[{ text: "✅ စိစစ်ပြီး (Approved)", callback_data: "done" }]] }
-                                })
-                            });
-                        }
-                        // ၂။ ငွေဖြည့်အော်ဒါ ငြင်းပယ်ခြင်း (Deposit Reject) - dep|rej|orderId
-                        else if (parts[0] === 'dep' && parts[1] === 'rej') {
-                            const orderId = parts[2];
-
-                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
-
-                            notificationText = "ငွေဖြည့်အော်ဒါကို ငြင်းပယ်လိုက်ပါပြီ!";
-
-                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    chat_id: chatId,
-                                    message_id: messageId,
-                                    reply_markup: { inline_keyboard: [[{ text: "❌ ငြင်းပယ်ပြီး (Rejected)", callback_data: "done" }]] }
-                                })
-                            });
-                        }
-                        // ၃။ ဂိမ်းအော်ဒါ အတည်ပြုခြင်း (Game Order Approve) - game|app|orderId
-                        else if (parts[0] === 'game' && parts[1] === 'app') {
-                            const orderId = parts[2];
-
-                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
-
-                            notificationText = "ဂိမ်းအော်ဒါကို အတည်ပြုပေးလိုက်ပါပြီ!";
-
-                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    chat_id: chatId,
-                                    message_id: messageId,
-                                    reply_markup: { inline_keyboard: [[{ text: "✅ စိစစ်ပြီး (Approved)", callback_data: "done" }]] }
-                                })
-                            });
-                        }
-                        // ၄။ ဂိမ်းအော်ဒါ ငြင်းပယ်ခြင်း (Game Order Reject) - game|rej|orderId|userKey|price
-                        else if (parts[0] === 'game' && parts[1] === 'rej') {
-                            const orderId = parts[2];
-                            const userKey = parts[3];
-                            const price = parseFloat(parts[4]);
-
-                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
-
-                            // နှုတ်ထားသော ငွေကို ပြန်အမ်းပေးခြင်း
-                            const uRes = await fetch(`${DB_URL}users/${userKey}/balance.json`);
-                            const currentBal = (await uRes.json()) || 0;
-                            await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(currentBal + price) });
-
-                            notificationText = "ဂိမ်းအော်ဒါကို ငြင်းပယ်ပြီး ငွေပြန်အမ်းပေးလိုက်ပါပြီ!";
-
-                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    chat_id: chatId,
-                                    message_id: messageId,
-                                    reply_markup: { inline_keyboard: [[{ text: "❌ ငြင်းပယ်ပြီး (Rejected)", callback_data: "done" }]] }
-                                })
-                            });
-                        }
-
-                        if (notificationText) {
-                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ callback_query_id: callback.id, text: notificationText })
-                            });
-                        }
-                    }
-                }
-            }
-        } catch (e) {
-            console.error("Telegram Polling Error:", e);
-        }
-    }
-
     function renderOrdersAndHistory(data) {
-        if (!data) return;
         const activeList = document.getElementById('activeOrdersList');
         const historyList = document.getElementById('historyList');
         const statementList = document.getElementById('statementList');
+
+        if (!data) {
+            activeList.innerHTML = "လက်ရှိ အော်ဒါ မရှိပါ။";
+            historyList.innerHTML = "မှတ်တမ်း မရှိပါ။";
+            statementList.innerHTML = "ငွေဝင်ငွေထွက် မှတ်တမ်း မရှိသေးပါ။";
+            return;
+        }
 
         let activeHtml = "";
         let historyHtml = "";
         let statementHtml = "";
 
-        const myOrders = Object.values(data).filter(o => o.gmail === currentUser.gmail).reverse();
+        const myOrders = Object.values(data).filter(o => o && o.gmail === currentUser.gmail).reverse();
 
         myOrders.forEach(o => {
-            // ၁။ Active Orders View
             if (o.status === 'pending') {
                 activeHtml += `
                     <div class="history-card">
@@ -1017,7 +1073,6 @@
                     </div>
                 `;
             } else {
-                // 2. Order History View
                 const isApproved = o.status === 'approved';
                 historyHtml += `
                     <div class="history-card ${isApproved ? 'approved' : 'rejected'}">
@@ -1027,12 +1082,11 @@
                 `;
             }
 
-            // ၃။ Financial Statement / Transaction Log View
             if (o.type === 'deposit' && o.status === 'approved') {
                 statementHtml += `
                     <div class="statement-card income">
                         <div>
-                            <div style="font-weight:bold; color:var(--accent-green);">+${o.amount.toLocaleString()} MMK</div>
+                            <div style="font-weight:bold; color:var(--accent-green);">+${(o.amount || 0).toLocaleString()} MMK</div>
                             <div style="font-size:12px; color:var(--text-gray);">ငွေဖြည့်သွင်းခြင်း အောင်မြင်မှု</div>
                         </div>
                         <div style="font-size:11px; color:var(--text-gray); text-align:right;">${o.time || 'အတည်ပြုပြီး'}</div>
@@ -1043,7 +1097,7 @@
                     statementHtml += `
                         <div class="statement-card income">
                             <div>
-                                <div style="font-weight:bold; color:var(--accent-green);">+${o.price.toLocaleString()} MMK</div>
+                                <div style="font-weight:bold; color:var(--accent-green);">+${(o.price || 0).toLocaleString()} MMK</div>
                                 <div style="font-size:12px; color:var(--text-gray);">${o.type.toUpperCase()} - အော်ဒါပယ်ဖျက်၍ ငွေပြန်အမ်းခြင်း</div>
                             </div>
                             <div style="font-size:11px; color:var(--text-gray); text-align:right;">${o.orderId}</div>
@@ -1053,8 +1107,8 @@
                     statementHtml += `
                         <div class="statement-card expense">
                             <div>
-                                <div style="font-weight:bold; color:var(--accent-red);">-${o.price.toLocaleString()} MMK</div>
-                                <div style="font-size:12px; color:var(--text-gray);">${o.type.toUpperCase()} - ${o.item} ဝယ်ယူမှု</div>
+                                <div style="font-weight:bold; color:var(--accent-red);">-${(o.price || 0).toLocaleString()} MMK</div>
+                                <div style="font-size:12px; color:var(--text-gray);">${o.type.toUpperCase()} - ${o.item || ''} ဝယ်ယူမှု</div>
                             </div>
                             <div style="font-size:11px; color:var(--text-gray); text-align:right;">${o.orderId}</div>
                         </div>
@@ -1079,9 +1133,14 @@
         await fetch(`${DB_URL}users/${userKey}/password.json`, { method: 'PUT', body: JSON.stringify(newP) });
         currentUser.password = newP;
         showAlert("Password အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။", 'success');
+        
+        document.getElementById('oldPass').value = '';
+        document.getElementById('newPass').value = '';
+        togglePassForm();
     }
 
     function handleLogout() {
+        if (syncTimer) clearInterval(syncTimer);
         localStorage.removeItem('kp_user_gmail');
         location.reload();
     }
