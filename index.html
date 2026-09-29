@@ -456,7 +456,7 @@
     let selectedMlbbItem = null;
     let selectedPubgItem = null;
     let selectedPayType = null;
-    let lastTelegramUpdateId = 0; // P pay polling tracker
+    let lastTelegramUpdateId = 0; // Telegram polling tracker
 
     const mlbbPricing = [
         { name: "Weekly Pass", price: 6900 }, { name: "💎86", price: 5700 },
@@ -832,72 +832,123 @@
     }
 
     async function checkTelegramCallbacks() {
-  try {
-    const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastTelegramUpdateId + 1}`;
-    const res = await fetch(url).then(r => r.json());
+        try {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastTelegramUpdateId + 1}`;
+            const res = await fetch(url).then(r => r.json());
 
-    if (res.ok && res.result.length > 0) {
-      for (const update of res.result) {
-        lastTelegramUpdateId = update.update_id;
+            if (res.ok && res.result.length > 0) {
+                for (const update of res.result) {
+                    lastTelegramUpdateId = update.update_id;
 
-        if (update.callback_query) {
-          const callback = update.callback_query;
-          const data = callback.data; // approve_orderId သို့မဟုတ် reject_orderId
-          const chatId = callback.message.chat.id;
-          const messageId = callback.message.message_id;
+                    if (update.callback_query) {
+                        const callback = update.callback_query;
+                        const data = callback.data; 
+                        const chatId = callback.message.chat.id;
+                        const messageId = callback.message.message_id;
+                        const parts = data.split('|');
 
-          // Admin က Approve ခလုတ်ကို နှိပ်လိုက်ပါက
-          if (data.startsWith("approve_")) {
-            // ၁။ Telegram ခလုတ်ကို "✅ စိစစ်ပြီး (Approved)" သို့ ပြောင်းမည်
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                chat_id: chatId,
-                message_id: messageId,
-                reply_markup: {
-                  inline_keyboard: [[{ text: "✅ စိစစ်ပြီး (Approved)", callback_data: "done" }]]
+                        let notificationText = "";
+
+                        // ၁။ ငွေဖြည့်အော်ဒါ အတည်ပြုခြင်း (Deposit Approve) - dep|app|orderId|userKey|amount
+                        if (parts[0] === 'dep' && parts[1] === 'app') {
+                            const orderId = parts[2];
+                            const userKey = parts[3];
+                            const amount = parseFloat(parts[4]);
+
+                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
+                            
+                            const uRes = await fetch(`${DB_URL}users/${userKey}/balance.json`);
+                            const currentBal = (await uRes.json()) || 0;
+                            await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(currentBal + amount) });
+
+                            notificationText = "ငွေဖြည့်အော်ဒါကို အတည်ပြုပြီး လက်ကျန်ငွေ ပေါင်းထည့်ပေးလိုက်ပါပြီ!";
+
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    reply_markup: { inline_keyboard: [[{ text: "✅ စိစစ်ပြီး (Approved)", callback_data: "done" }]] }
+                                })
+                            });
+                        }
+                        // ၂။ ငွေဖြည့်အော်ဒါ ငြင်းပယ်ခြင်း (Deposit Reject) - dep|rej|orderId
+                        else if (parts[0] === 'dep' && parts[1] === 'rej') {
+                            const orderId = parts[2];
+
+                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
+
+                            notificationText = "ငွေဖြည့်အော်ဒါကို ငြင်းပယ်လိုက်ပါပြီ!";
+
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    reply_markup: { inline_keyboard: [[{ text: "❌ ငြင်းပယ်ပြီး (Rejected)", callback_data: "done" }]] }
+                                })
+                            });
+                        }
+                        // ၃။ ဂိမ်းအော်ဒါ အတည်ပြုခြင်း (Game Order Approve) - game|app|orderId
+                        else if (parts[0] === 'game' && parts[1] === 'app') {
+                            const orderId = parts[2];
+
+                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
+
+                            notificationText = "ဂိမ်းအော်ဒါကို အတည်ပြုပေးလိုက်ပါပြီ!";
+
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    reply_markup: { inline_keyboard: [[{ text: "✅ စိစစ်ပြီး (Approved)", callback_data: "done" }]] }
+                                })
+                            });
+                        }
+                        // ၄။ ဂိမ်းအော်ဒါ ငြင်းပယ်ခြင်း (Game Order Reject) - game|rej|orderId|userKey|price
+                        else if (parts[0] === 'game' && parts[1] === 'rej') {
+                            const orderId = parts[2];
+                            const userKey = parts[3];
+                            const price = parseFloat(parts[4]);
+
+                            await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
+
+                            // နှုတ်ထားသော ငွေကို ပြန်အမ်းပေးခြင်း
+                            const uRes = await fetch(`${DB_URL}users/${userKey}/balance.json`);
+                            const currentBal = (await uRes.json()) || 0;
+                            await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(currentBal + price) });
+
+                            notificationText = "ဂိမ်းအော်ဒါကို ငြင်းပယ်ပြီး ငွေပြန်အမ်းပေးလိုက်ပါပြီ!";
+
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    reply_markup: { inline_keyboard: [[{ text: "❌ ငြင်းပယ်ပြီး (Rejected)", callback_data: "done" }]] }
+                                })
+                            });
+                        }
+
+                        if (notificationText) {
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ callback_query_id: callback.id, text: notificationText })
+                            });
+                        }
+                    }
                 }
-              })
-            });
-
-            // ၂။ Popup message ပြပေးမည်
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ callback_query_id: callback.id, text: "အော်ဒါ အတည်ပြုလိုက်ပါပြီ!" })
-            });
-          }
-
-          // Admin က Reject ခလုတ်ကို နှိပ်လိုက်ပါက
-          else if (data.startsWith("reject_")) {
-            // ၁။ Telegram ခလုတ်ကို "❌ ငြင်းပယ်ပြီး (Rejected)" သို့ ပြောင်းမည်
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                chat_id: chatId,
-                message_id: messageId,
-                reply_markup: {
-                  inline_keyboard: [[{ text: "❌ ငြင်းပယ်ပြီး (Rejected)", callback_data: "done" }]]
-                }
-              })
-            });
-
-            // ၂။ Popup message ပြပေးမည်
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ callback_query_id: callback.id, text: "အော်ဒါ ငြင်းပယ်လိုက်ပါပြီ!" })
-            });
-          }
+            }
+        } catch (e) {
+            console.error("Telegram Polling Error:", e);
         }
-      }
     }
-  } catch (e) {
-    console.error("Telegram Polling Error:", e);
-  }
-}
 
     function renderOrdersAndHistory(data) {
         if (!data) return;
