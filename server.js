@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 
 const DB_URL = "https://gaming-top-up-692ce-default-rtdb.asia-southeast1.firebasedatabase.app/";
-const BOT_TOKEN = "-1003985682985";
+const BOT_TOKEN = "8899225049:AAGpv7SaaKShZ77eWVitRdbb-i36loYdeCg";
 
 app.post('/telegram-webhook', async (req, res) => {
     const callbackQuery = req.body.callback_query;
