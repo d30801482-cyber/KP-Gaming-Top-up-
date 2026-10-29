@@ -39,12 +39,18 @@ app.post('/telegram-webhook', async (req, res) => {
                     }
                     await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'approved' });
 
+                    // ခလုတ်များကို ဖြုတ်ပြီး စိစစ်ပြီးကြောင်းပြောင်းရန်
+                    await removeTelegramButtons(chatId, messageId, "✅ ငွေသွင်းအတည်ပြုပြီး (Approved)");
                     await editTelegramMessage(chatId, messageId, `✅ **ငွေသွင်းအတည်ပြုပြီးပါပြီ**\nOrder ID: ${orderId}`);
                 } else {
                     await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'rejected' });
+                    
+                    // ခလုတ်များကို ဖြုတ်ရန်
+                    await removeTelegramButtons(chatId, messageId, "❌ ငွေသွင်းငြင်းပယ်ပြီး (Rejected)");
                     await editTelegramMessage(chatId, messageId, `❌ **ငွေသွင်းငြင်းပယ်လိုက်ပါသည်**\nOrder ID: ${orderId}`);
                 }
             } else {
+                await removeTelegramButtons(chatId, messageId, "⚠️ ပြီးစီးပြီးသား");
                 await editTelegramMessage(chatId, messageId, `⚠️ **ဤငွေသွင်းအော်ဒါ ပြီးစီးပြီးသား ဖြစ်ပါသည်။**\nOrder ID: ${orderId}`);
             }
 
@@ -56,6 +62,9 @@ app.post('/telegram-webhook', async (req, res) => {
             if (orderData && orderData.status === 'pending') {
                 if (status === 'approve') {
                     await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'approved' });
+                    
+                    // ခလုတ်များကို ဖြုတ်ရန်
+                    await removeTelegramButtons(chatId, messageId, "✅ အော်ဒါပြီးစီး (Approved)");
                     await editTelegramMessage(chatId, messageId, `✅ **ဂိမ်းအော်ဒါ အကောင်အထည်ဖော်ပြီးပါပြီ**\nOrder ID: ${orderId}`);
                 } else {
                     // ငြင်းပယ်ပြီး ငွေပြန်အမ်းခြင်း (Double Refund ကာကွယ်ထားသည်)
@@ -71,9 +80,12 @@ app.post('/telegram-webhook', async (req, res) => {
                         await axios.patch(`${DB_URL}users/${gmailKey}.json`, { balance: newBalance });
                     }
 
+                    // ခလုတ်များကို ဖြုတ်ရန်
+                    await removeTelegramButtons(chatId, messageId, "❌ ငြင်းပယ်ပြီး ငွေပြန်အမ်းပြီး");
                     await editTelegramMessage(chatId, messageId, `❌ **ဂိမ်းအော်ဒါ ငြင်းပယ်ပြီး ငွေပြန်အမ်းပေးလိုက်ပါပြီ**\nOrder ID: ${orderId}`);
                 }
             } else {
+                await removeTelegramButtons(chatId, messageId, "⚠️ ပြီးစီးပြီးသား");
                 await editTelegramMessage(chatId, messageId, `⚠️ **ဤဂိမ်းအော်ဒါ ပြီးစီးပြီးသား (သို့) ငြင်းပယ်ပြီးသား ဖြစ်ပါသည်။**\nOrder ID: ${orderId}`);
             }
         }
@@ -88,6 +100,21 @@ async function editTelegramMessage(chatId, messageId, text) {
         text: text,
         parse_mode: 'Markdown'
     });
+}
+
+// Telegram ခလုတ်များကို ဖယ်ရှားပေးမည့် function အသစ်
+async function removeTelegramButtons(chatId, messageId, btnText) {
+    try {
+        await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: {
+                inline_keyboard: [[{ text: btnText, callback_data: "done" }]]
+            }
+        });
+    } catch (e) {
+        console.error("Error removing buttons:", e);
+    }
 }
 
 const PORT = process.env.PORT || 3000;
