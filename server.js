@@ -39,14 +39,15 @@ app.post('/telegram-webhook', async (req, res) => {
                     }
                     await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'approved' });
 
-                    await editTelegramMessage(chatId, messageId, `✅ **ငွေသွင်းအတည်ပြုပြီးပါပြီ**\nOrder ID: ${orderId}\nပမာဏ: ${amount.toLocaleString()} MMK\n\n📌 **စစ်ဆေးပြီးပါပြီ**`);
+                    // ငွေသွင်းအော်ဒါ (ပုံပါသောကြောင့် Caption ကိုပြောင်းရန်)
+                    await editTelegramCaption(chatId, messageId, `✅ **ငွေသွင်းအတည်ပြုပြီးပါပြီ**\nOrder ID: ${orderId}\nပမာဏ: ${amount.toLocaleString()} MMK\n\n📌 **စစ်ဆေးပြီးပါပြီ**`);
                 } else {
                     await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'rejected' });
                     
-                    await editTelegramMessage(chatId, messageId, `❌ **ငွေသွင်းငြင်းပယ်လိုက်ပါသည်**\nOrder ID: ${orderId}\n\n📌 **စစ်ဆေးပြီးပါပြီ**`);
+                    await editTelegramCaption(chatId, messageId, `❌ **ငွေသွင်းငြင်းပယ်လိုက်ပါသည်**\nOrder ID: ${orderId}\n\n📌 **စစ်ဆေးပြီးပါပြီ**`);
                 }
             } else {
-                await editTelegramMessage(chatId, messageId, `⚠️ **ဤငွေသွင်းအော်ဒါ ပြီးစီးပြီးသား ဖြစ်ပါသည်။**\nOrder ID: ${orderId}`);
+                await editTelegramCaption(chatId, messageId, `⚠️ **ဤငွေသွင်းအော်ဒါ ပြီးစီးပြီးသား ဖြစ်ပါသည်။**\nOrder ID: ${orderId}`);
             }
 
         } else if (actionType === 'game') {
@@ -58,6 +59,7 @@ app.post('/telegram-webhook', async (req, res) => {
                 if (status === 'approve') {
                     await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'approved' });
                     
+                    // ဂိမ်းအော်ဒါ (စာသားသက်သက်ဖြစ်သောကြောင့် Text ကိုပြောင်းရန်)
                     await editTelegramMessage(chatId, messageId, `✅ **ဂိမ်းအော်ဒါ အကောင်အထည်ဖော်ပြီးပါပြီ**\nOrder ID: ${orderId}\n\n📌 **စစ်ဆေးပြီးပါပြီ**`);
                 } else {
                     // ငြင်းပယ်ပြီး ငွေပြန်အမ်းခြင်း (Double Refund ကာကွယ်ထားသည်)
@@ -83,13 +85,32 @@ app.post('/telegram-webhook', async (req, res) => {
     res.sendStatus(200);
 });
 
+// စာသားသက်သက် မက်ဆေ့ဂျ်များအတွက်
 async function editTelegramMessage(chatId, messageId, text) {
-    await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
-        chat_id: chatId,
-        message_id: messageId,
-        text: text,
-        parse_mode: 'Markdown'
-    });
+    try {
+        await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
+            chat_id: chatId,
+            message_id: messageId,
+            text: text,
+            parse_mode: 'Markdown'
+        });
+    } catch (e) {
+        console.error("Error editing message:", e);
+    }
+}
+
+// ပုံပါသော မက်ဆေ့ဂျ် (ငွေသွင်းပြေစာ) များအတွက် Caption ပြောင်းရန်
+async function editTelegramCaption(chatId, messageId, caption) {
+    try {
+        await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageCaption`, {
+            chat_id: chatId,
+            message_id: messageId,
+            caption: caption,
+            parse_mode: 'Markdown'
+        });
+    } catch (e) {
+        console.error("Error editing caption:", e);
+    }
 }
 
 const PORT = process.env.PORT || 3000;
