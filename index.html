@@ -577,7 +577,7 @@
         <!-- SVG Powered Vector Bottom Navigation -->
         <div class="bottom-nav">
             <div class="nav-item active" id="navShop" onclick="showNavSection('shopSection', 'navShop')">
-                <svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h16v-2l-1 5zm-9 4H6v-4h6v4z"/></svg>
                 <span>ဆိုင်</span>
             </div>
             <div class="nav-item" id="navDeposit" onclick="showNavSection('depositSection', 'navDeposit')">
@@ -1072,16 +1072,54 @@
                             const currentBal = (await uRes.json()) || 0;
                             await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(currentBal + amount) });
 
+                            // Telegram ငွေသွင်းအော်ဒါ (ပုံပါသောကြောင့် Caption ကို တည်းဖြတ်ရန်)
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageCaption`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    caption: `✅ **ငွေသွင်းအော်ဒါ အတည်ပြုပြီးပါပြီ**\nOrder ID: ${orderId}\nပမာဏ: ${amount.toLocaleString()} MMK\n\n📌 **စစ်ဆေးပြီးပါပြီ (Approved)**`,
+                                    parse_mode: 'Markdown'
+                                })
+                            });
+
                             notificationText = "ငွေဖြည့်အော်ဒါကို အတည်ပြုပြီးပါပြီ!";
                         } else if (parts[0] === 'dep' && parts[1] === 'rej') {
                             const orderId = parts[2];
                             await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('rejected') });
                             await fetch(`${DB_URL}orders/${orderId}/time.json`, { method: 'PUT', body: JSON.stringify(new Date().toLocaleString()) });
+
+                            // Telegram ငွေသွင်းအော်ဒါ ငြင်းပယ်ခြင်း (Caption ကို တည်းဖြတ်ရန်)
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageCaption`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    caption: `❌ **ငွေသွင်းအော်ဒါ ငြင်းပယ်လိုက်ပါသည်**\nOrder ID: ${orderId}\n\n📌 **စစ်ဆေးပြီးပါပြီ (Rejected)**`,
+                                    parse_mode: 'Markdown'
+                                })
+                            });
+
                             notificationText = "ငွေဖြည့်အော်ဒါ ငြင်းပယ်ပြီးပါပြီ!";
                         } else if (parts[0] === 'game' && parts[1] === 'app') {
                             const orderId = parts[2];
                             await fetch(`${DB_URL}orders/${orderId}/status.json`, { method: 'PUT', body: JSON.stringify('approved') });
                             await fetch(`${DB_URL}orders/${orderId}/time.json`, { method: 'PUT', body: JSON.stringify(new Date().toLocaleString()) });
+
+                            // Telegram ဂိမ်းအော်ဒါ အတည်ပြုခြင်း (Text ကို တည်းဖြတ်ရန်)
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    text: `✅ **ဂိမ်းအော်ဒါ အကောင်အထည်ဖော်ပြီးပါပြီ**\nOrder ID: ${orderId}\n\n📌 **စစ်ဆေးပြီးပါပြီ (Approved)**`,
+                                    parse_mode: 'Markdown'
+                                })
+                            });
+
                             notificationText = "ဂိမ်းအော်ဒါ အတည်ပြုပြီးပါပြီ!";
                         } else if (parts[0] === 'game' && parts[1] === 'rej') {
                             const orderId = parts[2];
@@ -1094,6 +1132,18 @@
                             const uRes = await fetch(`${DB_URL}users/${userKey}/balance.json`);
                             const currentBal = (await uRes.json()) || 0;
                             await fetch(`${DB_URL}users/${userKey}/balance.json`, { method: 'PUT', body: JSON.stringify(currentBal + price) });
+
+                            // Telegram ဂိမ်းအော်ဒါ ငြင်းပယ်ပြီး ငွေပြန်အမ်းခြင်း (Text ကို တည်းဖြတ်ရန်)
+                            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    message_id: messageId,
+                                    text: `❌ **ဂိမ်းအော်ဒါ ငြင်းပယ်ပြီး ငွေပြန်အမ်းပေးလိုက်ပါပြီ**\nOrder ID: ${orderId}\n\n📌 **စစ်ဆေးပြီးပါပြီ (Rejected & Refunded)**`,
+                                    parse_mode: 'Markdown'
+                                })
+                            });
 
                             notificationText = "ငွေပြန်အမ်းပေးလိုက်ပါပြီ!";
                         }
