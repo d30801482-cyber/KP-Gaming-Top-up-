@@ -24,28 +24,57 @@ app.post('/telegram-webhook', async (req, res) => {
             const gmailKey = parts[3].replace(/\./g, '_');
             const amount = parseFloat(parts[4]);
 
-            if (status === 'approve') {
-                // Update User Balance
-                const userRes = await axios.get(`${DB_URL}users/${gmailKey}.json`);
-                const userData = userRes.data;
-                if (userData) {
-                    const newBalance = (userData.balance || 0) + amount;
-                    await axios.patch(`${DB_URL}users/${gmailKey}.json`, { balance: newBalance });
+            // ငွေသွင်းအော်ဒါအတွက် Double Check
+            const orderRes = await axios.get(`${DB_URL}orders/${orderId}.json`);
+            const orderData = orderRes.data;
+
+            if (orderData && orderData.status === 'pending') {
+                if (status === 'approve') {
+                    // Update User Balance
+                    const userRes = await axios.get(`${DB_URL}users/${gmailKey}.json`);
+                    const userData = userRes.data;
+                    if (userData) {
+                        const newBalance = (userData.balance || 0) + amount;
+                        await axios.patch(`${DB_URL}users/${gmailKey}.json`, { balance: newBalance });
+                    }
+                    await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'approved' });
+
+                    await editTelegramMessage(chatId, messageId, `✅ **ငွေသွင်းအတည်ပြုပြီးပါပြီ**\nOrder ID: ${orderId}`);
+                } else {
+                    await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'rejected' });
+                    await editTelegramMessage(chatId, messageId, `❌ **ငွေသွင်းငြင်းပယ်လိုက်ပါသည်**\nOrder ID: ${orderId}`);
                 }
-                await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'approved' });
-                
-                await editTelegramMessage(chatId, messageId, `✅ **ငွေသွင်းအတည်ပြုပြီးပါပြီ**\nOrder ID: ${orderId}`);
             } else {
-                await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'rejected' });
-                await editTelegramMessage(chatId, messageId, `❌ **ငွေသွင်းငြင်းပယ်လိုက်ပါသည်**\nOrder ID: ${orderId}`);
+                await editTelegramMessage(chatId, messageId, `⚠️ **ဤငွေသွင်းအော်ဒါ ပြီးစီးပြီးသား ဖြစ်ပါသည်။**\nOrder ID: ${orderId}`);
             }
+
         } else if (actionType === 'game') {
-            if (status === 'approve') {
-                await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'approved' });
-                await editTelegramMessage(chatId, messageId, `✅ **ဂိမ်းအော်ဒါ အကောင်အထည်ဖော်ပြီးပါပြီ**\nOrder ID: ${orderId}`);
+            // ဂိမ်းအော်ဒါအတွက် Double Check
+            const orderRes = await axios.get(`${DB_URL}orders/${orderId}.json`);
+            const orderData = orderRes.data;
+
+            if (orderData && orderData.status === 'pending') {
+                if (status === 'approve') {
+                    await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'approved' });
+                    await editTelegramMessage(chatId, messageId, `✅ **ဂိမ်းအော်ဒါ အကောင်အထည်ဖော်ပြီးပါပြီ**\nOrder ID: ${orderId}`);
+                } else {
+                    // ငြင်းပယ်ပြီး ငွေပြန်အမ်းခြင်း (Double Refund ကာကွယ်ထားသည်)
+                    await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'rejected' });
+
+                    const gmailKey = orderData.gmail.replace(/\./g, '_');
+                    const price = orderData.price;
+
+                    const userRes = await axios.get(`${DB_URL}users/${gmailKey}.json`);
+                    const userData = userRes.data;
+                    if (userData) {
+                        const newBalance = (userData.balance || 0) + price;
+                        await axios.patch(`${DB_URL}users/${gmailKey}.json`, { balance: newBalance });
+                    }
+
+                    await editTelegramMessage(chatId, messageId, `❌ **ဂိမ်းအော်ဒါ ငြင်းပယ်ပြီး ငွေပြန်အမ်းပေးလိုက်ပါပြီ**\nOrder ID: ${orderId}`);
+                }
             } else {
-                await axios.patch(`${DB_URL}orders/${orderId}.json`, { status: 'rejected' });
-                await editTelegramMessage(chatId, messageId, `❌ **ဂိမ်းအော်ဒါ ငြင်းပယ်လိုက်ပါသည်**\nOrder ID: ${orderId}`);
+                await editTelegramMessage(chatId, messageId, `⚠️ **ဤဂိမ်းအော်ဒါ ပြီးစီးပြီးသား (သို့) ငြင်းပယ်ပြီးသား ဖြစ်ပါသည်။**\nOrder ID: ${orderId}`);
             }
         }
     }
